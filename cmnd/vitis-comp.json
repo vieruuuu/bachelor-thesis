@@ -1,0 +1,12 @@
+{
+  "name": "cmnd",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "cmnd"
+  },
+  "template": "empty_hls_component"
+}

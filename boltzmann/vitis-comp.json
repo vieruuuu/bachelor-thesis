@@ -1,0 +1,12 @@
+{
+  "name": "boltzmann",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "boltzmann"
+  },
+  "template": "empty_hls_component"
+}

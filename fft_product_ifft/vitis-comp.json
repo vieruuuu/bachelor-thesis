@@ -1,0 +1,12 @@
+{
+  "name": "fft_product_ifft",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "fft_product_ifft"
+  },
+  "template": "empty_hls_component"
+}

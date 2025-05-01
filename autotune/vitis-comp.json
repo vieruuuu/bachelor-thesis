@@ -1,0 +1,12 @@
+{
+  "name": "autotune",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "autotune"
+  },
+  "template": "empty_hls_component"
+}

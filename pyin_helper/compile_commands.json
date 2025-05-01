@@ -1,0 +1,40 @@
+[
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\pyin_helper",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=pyin_helper",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\pyin_helper\\pyin_helper.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\pyin_helper\\pyin_helper.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\pyin_helper",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=pyin_helper",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\pyin_helper",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls-tb",
+      "-hls-sim-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\include",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\pyin_helper\\pyin_helper_test.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\pyin_helper\\pyin_helper_test.cpp"
+  }
+]

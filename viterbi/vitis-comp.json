@@ -1,0 +1,12 @@
+{
+  "name": "viterbi",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "viterbi"
+  },
+  "template": "empty_hls_component"
+}

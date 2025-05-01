@@ -1,0 +1,12 @@
+{
+  "name": "pyin",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "pyin"
+  },
+  "template": "empty_hls_component"
+}

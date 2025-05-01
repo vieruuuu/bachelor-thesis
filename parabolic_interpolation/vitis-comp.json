@@ -1,0 +1,12 @@
+{
+  "name": "parabolic_interpolation",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "parabolic_interpolation"
+  },
+  "template": "empty_hls_component"
+}

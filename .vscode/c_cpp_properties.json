@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+              "C:\\Xilinx\\Vitis\\2024.2\\include",
+              "C:\\Xilinx\\Vitis\\2024.2\\include\\etc",
+              "C:\\Xilinx\\Vitis\\2024.2\\include\\ap_sysc",
+              "C:\\Xilinx\\Vitis\\2024.2\\win64\\tools\\auto_cc\\include",
+              "C:\\Xilinx\\Vitis\\2024.2\\win64\\tools\\systemc\\include"
+            ], 
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.43.34808\\bin\\Hostx64\\x64\\cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
