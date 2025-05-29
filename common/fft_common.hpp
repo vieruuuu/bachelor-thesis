@@ -5,7 +5,7 @@
 
 struct fft_params : hls::ip_fft::params_t {
   //
-  static const unsigned max_nfft = frame_length_log2; // 2048 ifft
+  static const unsigned max_nfft = frame_length_log2 + 1;
   static const unsigned input_width = real_signal_width;
   static const unsigned output_width = real_signal_width;
 
@@ -30,18 +30,26 @@ struct fft_params : hls::ip_fft::params_t {
       hls::ip_fft::opt::use_mults_performance;
 };
 
-using fft_real = ap_fixed<fft_params::input_width, 1>;
-using fft_complex = std::complex<fft_real>;
-
+constexpr size_t fft_length = 1 << fft_params::max_nfft;
 constexpr unsigned fft_scaled_width =
     ((fft_params::input_width + fft_params::max_nfft + 1) + 7) / 8 * 8;
 
+using fft_real = ap_fixed<fft_params::input_width, 1>;
+using fft_complex = std::complex<fft_real>;
+
 using fft_real_scaled =
     ap_fixed<fft_scaled_width, fft_scaled_width - fft_params::input_width + 1>;
-
 using fft_complex_scaled = std::complex<fft_real_scaled>;
+
+using fft_real_stream = stream<fft_real, fft_length>;
+using fft_complex_stream = stream<fft_complex, fft_length>;
+using fft_real_scaled_stream = stream<fft_real_scaled, fft_length>;
+using fft_complex_scaled_stream = stream<fft_complex_scaled, fft_length>;
 
 using fft_config = hls::ip_fft::config_t<fft_params>;
 using fft_config_stream = stream<fft_config, 1>;
 using fft_status = hls::ip_fft::status_t<fft_params>;
 using fft_status_stream = stream<fft_status, 1>;
+
+using fft_exp = unsigned int;
+using fft_exp_stream = stream<fft_exp, 1>;

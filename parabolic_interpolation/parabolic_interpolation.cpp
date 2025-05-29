@@ -21,8 +21,8 @@ void parabolic_interpolation(stream<real_t, yin_frame_size> &yin_frame,
     next_frame = yin_frame.read();
 
     // Compute coefficients for parabolic interpolation
-    real_t a = next_frame + prev_frame - 2 * current_frame;
-    real_t b = (next_frame - prev_frame) / 2.0;
+    const real_t a = next_frame + prev_frame - 2 * current_frame;
+    const real_t b = (next_frame - prev_frame) / 2.0;
 
     // Check if the estimated optimum would be outside the range [i-1, i+1]
     if (hls::abs(b) >= hls::abs(a)) {

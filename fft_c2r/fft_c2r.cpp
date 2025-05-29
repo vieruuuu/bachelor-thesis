@@ -1,38 +1,34 @@
 #include "fft_c2r.hpp"
 
-void prepare_output_c2r(stream<fft_complex, frame_length> &complex_out_buffer,
-                        stream<fft_real, frame_length> &out) {
-  for (int i = 0; i < frame_length; ++i) {
+void prepare_output_c2r(fft_complex_stream &complex_out_buffer,
+                        fft_real_stream &out) {
+  for (index<fft_length> i = 0; i < fft_length; ++i) {
 #pragma HLS pipeline II = 1 rewind
-#pragma HLS LOOP_TRIPCOUNT min = frame_length max = frame_length
-
     out.write(complex_out_buffer.read().real());
   }
 }
 
-void write_exp_c2r(fft_status_stream &fft_status_s,
-                   stream<unsigned int, 1> &exp) {
-  fft_status status = fft_status_s.read();
+void write_inverse_config_c2r(fft_config_stream &fft_config_s) {
+  static fft_config config;
 
-  exp.write(status.getBlkExp());
+  config.setDir(0);
+
+  fft_config_s.write(config);
 }
 
-void fft_c2r(stream<fft_complex, frame_length> &in,
-             stream<fft_real, frame_length> &out,
-             stream<unsigned int, 1> &exp) {
+void write_exp_c2r(fft_status_stream &fft_status_s, fft_exp_stream &exp) {
+  exp.write(fft_status_s.read().getBlkExp());
+}
+
+void fft_c2r(fft_complex_stream &in, fft_real_stream &out,
+             fft_exp_stream &exp) {
 #pragma HLS dataflow
 
-  stream<fft_complex, frame_length> complex_out_buffer;
-
+  fft_complex_stream complex_out_buffer;
   fft_config_stream fft_config_s;
   fft_status_stream fft_status_s;
 
-  fft_config fft_config_tmp;
-
-  fft_config_tmp.setDir(0); // inverse fft
-  // fft_config_tmp.setSch(0b011010101011);
-
-  fft_config_s.write(fft_config_tmp);
+  write_inverse_config_c2r(fft_config_s);
 
   hls::fft<fft_params>(in, complex_out_buffer, fft_status_s, fft_config_s);
 

@@ -10,7 +10,7 @@ int main() {
 
   {
     std::ifstream infile(
-        "D:\\Documents\\hw_autotune\\vitis\\cmnd\\data\\y_frames.in");
+        "D:\\Documents\\hw_autotune\\vitis\\cmnd\\data\\new_y_frames.in");
     std::string line;
 
     while (std::getline(infile, line)) {
@@ -32,7 +32,7 @@ int main() {
 
   {
     std::ifstream infile(
-        "D:\\Documents\\hw_autotune\\vitis\\cmnd\\data\\yin_frames.out");
+        "D:\\Documents\\hw_autotune\\vitis\\cmnd\\data\\new_yin_frames.out");
     std::string line;
 
     while (std::getline(infile, line)) {
@@ -50,7 +50,7 @@ int main() {
     }
   }
 
-  stream<real_t, frame_length> y_frame;
+  stream<real_signal, frame_length> y_frame;
   stream<real_t, max_period - min_period + 1> yin_frame;
   stream<real_t, max_period - min_period + 1> yin_frame2;
 
@@ -60,6 +60,9 @@ int main() {
   size_t diff_count = 0;
 
   for (int i = 0; i < y_frames.size(); ++i) {
+    // for (int i = 777; i < 778; ++i) {
+    // for (int i = 1024; i < 1025; ++i) {
+    // for (int i = 662; i < 663; ++i) {
     for (int j = 0; j < y_frames[i].size(); ++j) {
       y_frame.write(y_frames[i][j]);
     }
@@ -73,7 +76,7 @@ int main() {
       real_t diff = std::fabs(result - expected_result);
 
       // if (diff >= 1) {
-      //   std::cout << "i = " << i << " result = " << result
+      //   std::cout << "[" << i << "][" << j << "] result = " << result
       //             << " expected_result = " << expected_result
       //             << " diff = " << diff << '\n';
       // }

@@ -1,173 +1,204 @@
 #include "cmnd.hpp"
+#include <iostream>
 
-// The length after computing the windowed differences:
-constexpr int L = frame_length - win_length;
+constexpr size_t K = max_period;
+constexpr size_t n = frame_length;
+constexpr size_t max_size = max_period + 1;
+constexpr size_t out_size = max_size;
+constexpr size_t n_pad = 2 * n;
+constexpr size_t n_bins = n_pad / 2 + 1;
 
-using y_frame_buffer = real_t[frame_length];
-using cum_sum_buffer = real_t[frame_length];
+// p=a*a+b*b where a=[-1, 1] b=[-1, 1] -> p=[-2, 2]
+// p is scaled down by 1
+constexpr int PRODUCT_SCALE_FACTOR = 1;
+// nu stiu de ce e nevoie de el ngl dar merge asa
+constexpr int UNKOWN_SCALE_FACTOR = 1;
+// acf is doubled when calculating dk
+constexpr int ACF_SCALE_FACTOR = 1;
 
-void create_y_frame_block(
-    stream<real_t, frame_length> &y_frame,
-    hls::stream_of_blocks<y_frame_buffer, 2> &y_frame_block) {
-  hls::write_lock<y_frame_buffer> y_frame_write_lock(y_frame_block);
+constexpr int STATIC_SCALE_FACTOR = fft_params::max_nfft -
+                                    PRODUCT_SCALE_FACTOR - ACF_SCALE_FACTOR -
+                                    UNKOWN_SCALE_FACTOR;
 
-  for (int i = 0; i < frame_length; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
+using cumsum_sq_type = ap_fixed<real_signal_width * 2, fitting_power_of_two(K)>;
 
-    y_frame_write_lock[i] = y_frame.read();
+// dk is (-SCALED,SCALED) + (-SCALED,SCALED) + (0,K)
+// where 512 is 1 << STATIC_SCALE_FACTOR
+constexpr size_t BIGGEST_NUMBER_SCALED = 1 << STATIC_SCALE_FACTOR;
+using dk_type = ap_fixed<real_signal_width * 2,
+                         fitting_power_of_two(BIGGEST_NUMBER_SCALED * 2 + K)>;
+
+void asd(stream<real_signal, frame_length> &y, fft_real_stream &r2c_in,
+         stream<cumsum_sq_type, K> &cumsum_sq) {
+  cumsum_sq_type previous_cumsum_sq = 0.0;
+
+COMPUTE_CUMSUM_SQ:
+  for (counter<K> i = 0; i < K; ++i) {
+#pragma HLS PIPELINE II = 1
+
+    const auto current_y_frame = y.read();
+
+    r2c_in.write(current_y_frame);
+
+    previous_cumsum_sq = current_y_frame * current_y_frame + previous_cumsum_sq;
+
+    cumsum_sq.write(previous_cumsum_sq);
+  }
+
+READ_REMAINING_Y:
+  for (counter<frame_length - K> i = 0; i < frame_length - K; ++i) {
+#pragma HLS PIPELINE II = 1
+
+    r2c_in.write(y.read());
+  }
+
+ADD_PADDING:
+  for (counter<n_pad - frame_length> i = 0; i < n_pad - frame_length; ++i) {
+#pragma HLS PIPELINE II = 1
+
+    r2c_in.write(0.0);
   }
 }
 
-void create_a_b_cum(hls::stream_of_blocks<y_frame_buffer, 2> &y_frame_block,
-                    stream<fft_real, frame_length> &A_stream,
-                    stream<fft_real, frame_length> &B_stream,
-                    hls::stream_of_blocks<cum_sum_buffer, 2> &cum_sum) {
-  hls::read_lock<y_frame_buffer> y_frame_read_lock(y_frame_block);
-  hls::write_lock<cum_sum_buffer> cum_sum_write_lock(cum_sum);
-  // real_t previous_cum_sum_element;
+void compute_power_spectrum(fft_complex_stream &r2c_out,
+                            fft_complex_stream &c2r_in) {
 
-  for (int i = 0; i < frame_length; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
+COMPUTE_MAG2:
+  for (counter<n_bins> i = 0; i < n_bins; ++i) {
+#pragma HLS PIPELINE II = 1
+    const auto tmp = r2c_out.read();
+    const auto mag2 = tmp.real() * tmp.real() + tmp.imag() * tmp.imag();
+    const auto mag2_scaled = mag2 >> PRODUCT_SCALE_FACTOR;
 
-    A_stream.write(y_frame_read_lock[i]);
+    c2r_in.write({mag2_scaled, 0.0});
+  }
 
-    B_stream.write(i < win_length ? y_frame_read_lock[win_length - i] : 0.0);
+ADD_PADDING:
+  for (counter<n_pad - n_bins> i = 0; i < n_pad - n_bins; ++i) {
+#pragma HLS PIPELINE II = 1
 
-    real_t cum_sum_element = y_frame_read_lock[i] * y_frame_read_lock[i];
+    static const fft_complex zero_complex = {0.0, 0.0};
 
-    if (i > 0) {
-      // cum_sum_element += previous_cum_sum_element;
-      cum_sum_element += cum_sum_write_lock[i - 1];
-    }
+    // discard fft output
+    r2c_out.read();
 
-    cum_sum_write_lock[i] = cum_sum_element;
-    // previous_cum_sum_element = cum_sum_element;
+    c2r_in.write(zero_complex);
   }
 }
 
-void create_acf(stream<real_t, frame_length> &ifft_result_stream,
-                stream<real_t, L> &acf) {
-  for (int i = 0; i < frame_length; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
+void normalization(fft_real_stream &c2r_out,
+                   stream<fft_real_scaled, out_size> &acf,
+                   fft_exp_stream &r2c_exp_s, fft_exp_stream &c2r_exp_s) {
 
-    const real_t ifft_result = ifft_result_stream.read();
+  const int r2c_exp = r2c_exp_s.read();
+  const int c2r_exp = c2r_exp_s.read();
 
-    // ignore first [win_length] values
-    if (i < win_length) {
-      continue;
+  const int scale_factor = STATIC_SCALE_FACTOR - 2 * r2c_exp - c2r_exp;
+
+EXTRACT_AUTOCORRELATION:
+  for (counter<out_size> i = 0; i < out_size; ++i) {
+#pragma HLS PIPELINE II = 1
+    fft_real_scaled result = c2r_out.read();
+
+    if (scale_factor > 0) {
+      result >>= scale_factor;
+    } else if (scale_factor < 0) {
+      result <<= -scale_factor;
     }
 
-    const real_t acf_element = hls::abs(ifft_result) < 1e-6 ? 0.0 : ifft_result;
+    acf.write(result);
+  }
 
-    acf.write(acf_element);
+DISCARD_FFT_OUTPUT:
+  for (counter<n_pad - out_size> i = 0; i < n_pad - out_size; ++i) {
+#pragma HLS PIPELINE II = 1
+    c2r_out.read();
   }
 }
 
-void create_energy(hls::stream_of_blocks<cum_sum_buffer, 2> &cum_sum,
-                   stream<real_t, L> &energy) {
-  hls::read_lock<cum_sum_buffer> cum_sum_read_lock(cum_sum);
+void autocorrelate_new(stream<real_signal, frame_length> &y,
+                       stream<fft_real_scaled, out_size> &acf,
+                       stream<cumsum_sq_type, K> &cumsum_sq) {
+#pragma HLS DATAFLOW
 
-  for (int i = 0; i < L; i++) {
-#pragma HLS PIPELINE II = 1 rewind
+  // Determine output size
+  // Zero-pad length for circular convolution: at least 2*n for full linear
+  // autocorrelation
+  // Allocate input and output buffers
+  fft_real_stream r2c_in;
+  fft_complex_stream r2c_out;
+  fft_complex_stream c2r_in;
+  fft_real_stream c2r_out;
+  fft_exp_stream r2c_exp_s;
+  fft_exp_stream c2r_exp_s;
 
-    real_t energy_value;
+  asd(y, r2c_in, cumsum_sq);
 
-    if (i == 0) {
-      energy_value = cum_sum_read_lock[win_length] - cum_sum_read_lock[0];
-    } else {
-      energy_value = cum_sum_read_lock[i + win_length] - cum_sum_read_lock[i];
-    }
+  // Plan and execute forward transform
+  fft_r2c(r2c_in, r2c_out, r2c_exp_s);
 
-    if (hls::abs(energy_value) < 1e-6) {
-      energy_value = 0.0;
-    }
+  // Compute power spectrum (abs^2)
+  compute_power_spectrum(r2c_out, c2r_in);
 
-    energy.write(energy_value);
-  }
+  // Plan and execute inverse transform
+  fft_c2r(c2r_in, c2r_out, c2r_exp_s);
+
+  // Normalize inverse FFT
+  normalization(c2r_out, acf, r2c_exp_s, c2r_exp_s);
 }
 
-void create_yin(real_t yin[L], stream<real_t, L> &energy,
-                stream<real_t, L> &acf) {
-  real_t first_energy;
-
-  for (int i = 0; i < L; i++) {
-#pragma HLS PIPELINE II = 1 rewind
-
-    const real_t energy_element = energy.read();
-    const real_t acf_element = acf.read();
-
-    if (i == 0) {
-      first_energy = energy_element;
-    }
-
-    yin[i] = first_energy + energy_element - 2.0 * acf_element;
-  }
-}
-
-void create_cum_yin(real_t cum_yin[max_period + 1], real_t yin[L]) {
-  // === Compute cumulative mean normalization ===
-  // Compute cumulative sum for tau = 1 ... max_period.
-  // (tau=0 is not used in normalization)
-  for (int tau = 1; tau <= max_period; tau++) {
-#pragma HLS PIPELINE II = 1 rewind
-
-    if (tau == 1) {
-      cum_yin[tau] = yin[1];
-    } else {
-      cum_yin[tau] = cum_yin[tau - 1] + yin[tau];
-    }
-  }
-}
-
-void create_yin_frame(real_t cum_yin[max_period + 1], real_t yin[L],
+// 3) Difference function d[k][f] for k=1..K
+//    d(0)=0 by definition
+// for k >= 1: d[k] = 2*(acf[0] - acf[k]) - sum_{m=0}^{k-1} y^2[m]
+// 4) Cumulative mean normalized difference:
+//    yin[k][f] = d[k][f] / ( (1/k) * sum_{j=1}^k d[j][f] )
+// we only store k in [min_period..max_period]
+// Precompute prefix sums of d for k=1..K
+// Fill output
+void diff_cmnd_output(stream<cumsum_sq_type, K> &cumsum_sq,
+                      stream<fft_real_scaled, K + 1> &acf,
                       stream<real_t, yin_frame_size> &yin_frame1,
                       stream<real_t, yin_frame_size> &yin_frame2) {
-  // For each tau in [min_period, max_period], compute normalized value:
-  // final_value = yin[tau] / ( (cumulative sum up to tau)/tau + epsilon )
-  for (int tau = min_period; tau <= max_period; tau++) {
+  using d_cumsum_running_type = ap_fixed<64, 20>;
+
+  d_cumsum_running_type d_cumsum_running =
+      std::numeric_limits<d_cumsum_running_type>::min();
+
+  const auto first_acf = acf.read();
+
+  for (counter<max_period + 1> k = 1; k < max_period + 1; ++k) {
 #pragma HLS PIPELINE II = 1 rewind
 
-    const real_t cumulative_mean = cum_yin[tau] / tau;
-    const real_t denom = cumulative_mean + epsilon;
-    const real_t value = yin[tau] / denom;
-    // Store in result; row index corresponds to (tau - min_period).
+    const dk_type dk = first_acf - acf.read() - cumsum_sq.read();
 
-    yin_frame1.write(value);
-    yin_frame2.write(value);
+    d_cumsum_running = d_cumsum_running + dk;
+
+    if (k > min_period - 1) {
+      const d_cumsum_running_type dkk = dk * k;
+      const d_cumsum_running_type result = dkk / d_cumsum_running;
+
+      yin_frame1.write(result);
+      yin_frame2.write(result);
+    }
   }
 }
 
+// y_frames: [frame_length][n_frames]
+// min_period, max_period: >0, with max_period < frame_length
+// returns yin: [(max_period-min_period+1)][n_frames]
 void cumulative_mean_normalized_difference(
-    stream<real_t, frame_length> &y_frame,
+    stream<real_signal, frame_length> &y_frame_stream,
     stream<real_t, yin_frame_size> &yin_frame1,
     stream<real_t, yin_frame_size> &yin_frame2) {
 #pragma HLS DATAFLOW
 
-  hls::stream_of_blocks<y_frame_buffer, 2> y_frame_block;
-  // cumulative sum of squares
-  hls::stream_of_blocks<cum_sum_buffer, 2> cum_sum;
+  stream<fft_real_scaled, K + 1> acf;
+  stream<cumsum_sq_type, K> cumsum_sq;
+  stream<dk_type, K> dk_s;
 
-  stream<fft_real, frame_length> A_stream;
-  stream<fft_real, frame_length> B_stream;
-  stream<real_t, frame_length> ifft_result_stream;
-  stream<real_t, L> acf;
-  stream<real_t, L> energy;
-  real_t yin[L] = {0.0};
-  real_t cum_yin[max_period + 1] = {0.0}; // use indices 1..max_period
+  autocorrelate_new(y_frame_stream, acf, cumsum_sq);
 
-  create_y_frame_block(y_frame, y_frame_block);
+  // generate_dk(cumsum_sq, acf, dk_s);
 
-  create_a_b_cum(y_frame_block, A_stream, B_stream, cum_sum);
-
-  fft_product_ifft(A_stream, B_stream, ifft_result_stream);
-
-  create_acf(ifft_result_stream, acf);
-
-  create_energy(cum_sum, energy);
-
-  create_yin(yin, energy, acf);
-
-  create_cum_yin(cum_yin, yin);
-
-  create_yin_frame(cum_yin, yin, yin_frame1, yin_frame2);
+  diff_cmnd_output(cumsum_sq, acf, yin_frame1, yin_frame2);
 }

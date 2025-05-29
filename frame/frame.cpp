@@ -1,27 +1,15 @@
 #include "frame.hpp"
 
+using FrameWindow = SlidingWindow<real_signal, hop_length, frame_length>;
+
 /**
  * Frame an audio signal into overlapping frames
  */
-void frame(stream<real_t, hop_length> &y,
-           stream<real_t, frame_length> &y_frame) {
-  static real_t buffer[frame_length] = {0};
+void frame(stream<real_signal, hop_length> &y,
+           stream<real_signal, frame_length> &y_frame) {
+#pragma HLS DATAFLOW
 
-  // shift_left_buffer
-  for (int i = 0; i < frame_length - hop_length; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
-    real_t tmp = buffer[i + hop_length];
+  static FrameWindow window(0.0);
 
-    y_frame.write(tmp);
-    buffer[i] = tmp;
-  }
-
-  // read_elements
-  for (int i = frame_length - hop_length; i < frame_length; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
-    real_t tmp = y.read();
-
-    y_frame.write(tmp);
-    buffer[i] = tmp;
-  }
+  window.slideLeftStreaming(y, y_frame);
 }

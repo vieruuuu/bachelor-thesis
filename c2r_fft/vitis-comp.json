@@ -1,12 +1,12 @@
 {
-  "name": "fft_product_ifft",
+  "name": "c2r_fft",
   "type": "HLS",
   "configuration": {
     "componentType": "HLS",
     "configFiles": [
       "hls_config.cfg"
     ],
-    "work_dir": "fft_product_ifft"
+    "work_dir": "c2r_fft"
   },
   "template": "empty_hls_component"
 }

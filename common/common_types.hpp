@@ -67,5 +67,12 @@ constexpr size_t log2_constexpr(size_t n) {
   return log;
 }
 
-template <size_t max_length>
-using index = ap_uint<log2_constexpr(next_power_of_two(max_length))>;
+constexpr size_t fitting_power_of_two(size_t n) {
+  return log2_constexpr(next_power_of_two(n));
+}
+
+// ap_uint<log2_constexpr(next_power_of_two(max_length + 1))>;
+template <size_t max_length> using index = size_t;
+
+template <size_t MAX_VALUE_EXCLUSIVE>
+using counter = ap_uint<fitting_power_of_two(MAX_VALUE_EXCLUSIVE + 1)>;

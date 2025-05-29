@@ -87,7 +87,8 @@
     "ratio": "cpp",
     "stop_token": "cpp",
     "thread": "cpp",
-    "random": "cpp"
+    "random": "cpp",
+    "bitset": "cpp"
   }, 
   "clangd.arguments": [
     "-IC:\\Xilinx\\Vitis\\2024.2\\include",

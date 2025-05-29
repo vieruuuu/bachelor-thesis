@@ -1,34 +1,38 @@
 #include "pyin.hpp"
-#include <fstream>
-#include <iostream>
-#include <tuple>
 
-void decode_state(path_stream &state_stream, stream<real_t, 1> &f0) {
-  int state = state_stream.read();
+void frame(stream<real_signal, hop_length> &y,
+           stream<real_signal, frame_length> &y_frame) {
+  static real_signal buffer[frame_length] = {0};
 
-  if (state < n_pitch_bins) {
-    f0.write(freqs[state % n_pitch_bins]);
-  } else {
-    f0.write(NAN);
+  // shift_left_buffer
+  for (int i = 0; i < frame_length - hop_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const real_signal tmp = buffer[i + hop_length];
+
+    y_frame.write(tmp);
+    buffer[i] = tmp;
+  }
+
+  // read_elements
+  for (int i = frame_length - hop_length; i < frame_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const real_signal tmp = y.read();
+
+    y_frame.write(tmp);
+    buffer[i] = tmp;
   }
 }
 
-// discard voiced_prob as its not used anywhere at the moment
-// and might be deleted
-void discard_voiced_prob(stream<real_t, 1> &voiced_prob_stream) {
-  voiced_prob_stream.read();
-}
-
-void pyin(stream<real_t, hop_length> &y, stream<real_t, 1> &f0) {
+void pyin(stream<real_signal, hop_length> &y, stream<real_t, 1> &f0_stream,
+          stream<real_t, 1> &corrected_f0_stream) {
 #pragma HLS DATAFLOW
 
-  stream<real_t, frame_length> y_frame;
+  stream<real_signal, frame_length> y_frame;
   stream<real_t, yin_frame_size> yin_frame1;
   stream<real_t, yin_frame_size> yin_frame2;
   stream<real_t, yin_frame_size> parabolic_shifts;
   stream<real_t, 2 * n_pitch_bins> observation_probs_stream;
-  stream<real_t, 1> voiced_prob_stream;
-  path_stream state_stream;
+  path_stream states_stream;
 
   frame(y, y_frame);
 
@@ -38,12 +42,11 @@ void pyin(stream<real_t, hop_length> &y, stream<real_t, 1> &f0) {
   // Parabolic interpolation.
   parabolic_interpolation(yin_frame1, parabolic_shifts);
 
-  pyin_helper(yin_frame2, parabolic_shifts, observation_probs_stream,
-              voiced_prob_stream);
+  pyin_helper(yin_frame2, parabolic_shifts, observation_probs_stream);
 
-  discard_voiced_prob(voiced_prob_stream);
+  // greedy_decode_lookahead_stream(observation_probs_stream, states_stream);
+  online_windowed_viterbi(observation_probs_stream, states_stream);
 
-  greedy_decode_lookahead_stream(observation_probs_stream, state_stream);
-
-  decode_state(state_stream, f0);
+  decode_state(Scales::EFLAT_MIN, states_stream, f0_stream,
+               corrected_f0_stream);
 }

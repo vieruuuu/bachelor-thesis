@@ -2,5 +2,5 @@
 
 #include "../common/common.hpp"
 
-void frame(stream<real_t, hop_length> &y,
-           stream<real_t, frame_length> &y_frame);
+void frame(stream<real_signal, hop_length> &y,
+           stream<real_signal, frame_length> &y_frame);

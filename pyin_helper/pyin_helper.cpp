@@ -2,14 +2,11 @@
 
 void write_output(real_t observation_probs[2 * n_pitch_bins],
                   real_t voiced_prob,
-                  stream<real_t, 2 * n_pitch_bins> &observation_probs_stream,
-                  stream<real_t, 1> &voiced_prob_stream) {
+                  stream<real_t, 2 * n_pitch_bins> &observation_probs_stream) {
   for (int i = 0; i < 2 * n_pitch_bins; ++i) {
 #pragma HLS PIPELINE II = 1 rewind
     observation_probs_stream.write(observation_probs[i]);
   }
-
-  voiced_prob_stream.write(voiced_prob);
 }
 
 void localmin(real_t yin_frame[yin_frame_size],
@@ -52,8 +49,7 @@ void copy_stream_to_buffer(
 
 void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
                  stream<real_t, yin_frame_size> &parabolic_shifts_stream,
-                 stream<real_t, 2 * n_pitch_bins> &observation_probs_stream,
-                 stream<real_t, 1> &voiced_prob_stream) {
+                 stream<real_t, 2 * n_pitch_bins> &observation_probs_stream) {
 
   stream<int, thresholds_size - 1> n_troughs;
   stream<real_t, yin_frame_size> trough_heights;
@@ -109,8 +105,7 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
 
   // Return empty observation if no troughs found
   if (trough_thresholds_size == 0) {
-    return write_output(observation_probs, 0.0, observation_probs_stream,
-                        voiced_prob_stream);
+    return write_output(observation_probs, 0.0, observation_probs_stream);
   }
 
   // Find which troughs are below each threshold
@@ -211,36 +206,22 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
       // Find pitch bin corresponding to each f0 candidate
       real_t bin_idx = 12 * n_bins_per_semitone * hls::log2(f0 / FMIN);
       // Clip to range [0, n_pitch_bins-1] and round to nearest integer
-      int bin = hls::round(bin_idx);
-      bin = hls::max(0, hls::min(n_pitch_bins - 1, bin));
+      const size_t bin = hls::round(bin_idx);
+      const size_t clipped_bin =
+          hls::max(static_cast<size_t>(0), hls::min(n_pitch_bins - 1, bin));
 
       // Observation probabilities
-      observation_probs[bin] += prob;
+      observation_probs[clipped_bin] += prob;
     }
   }
 
-  // // Calculate voiced probability
-  // real_t voiced_prob = 0.0;
-  // for (int i = 0; i < n_pitch_bins; ++i) {
-  //   voiced_prob += observation_probs[i];
-  // }
-
-  // voiced_prob = hls::max(0.0, hls::min(1.0, voiced_prob));
-
-  // // Set unvoiced probabilities
-  // real_t unvoiced_prob = (1.0 - voiced_prob) / n_pitch_bins;
-
-  // Calculate voiced probability using Kahan summation algorithm for better
-  // precision
+  // Calculate voiced probability
   real_t voiced_prob = 0.0;
-  real_t c = 0.0; // Compensation term for lost low-order bits
   for (int i = 0; i < n_pitch_bins; ++i) {
-    real_t y = observation_probs[i] - c; // c is zero the first time
-    real_t t = voiced_prob + y;          // Rounded sum
-    c = (t - voiced_prob) - y;           // Low-order bits lost in the sum
-    voiced_prob = t;
+    voiced_prob += observation_probs[i];
   }
-  voiced_prob = std::max(0.0, std::min(1.0, voiced_prob));
+
+  voiced_prob = hls::max(0.0, hls::min(1.0, voiced_prob));
 
   // Set unvoiced probabilities using full precision division
   real_t unvoiced_prob =
@@ -250,6 +231,5 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
     observation_probs[i] = unvoiced_prob;
   }
 
-  return write_output(observation_probs, voiced_prob, observation_probs_stream,
-                      voiced_prob_stream);
+  return write_output(observation_probs, voiced_prob, observation_probs_stream);
 }

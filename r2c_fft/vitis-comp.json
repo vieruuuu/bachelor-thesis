@@ -1,0 +1,12 @@
+{
+  "name": "r2c_fft",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": [
+      "hls_config.cfg"
+    ],
+    "work_dir": "r2c_fft"
+  },
+  "template": "empty_hls_component"
+}

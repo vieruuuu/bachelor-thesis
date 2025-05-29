@@ -1,0 +1,27 @@
+[
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=vocode",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls-tb",
+      "-hls-sim-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\include",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode_test.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode_test.cpp"
+  }
+]

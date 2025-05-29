@@ -6,7 +6,7 @@
       "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls",
       "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
-      "-fhlstoplevel=greedy_decode_lookahead_stream",
+      "-fhlstoplevel=online_windowed_viterbi",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\viterbi\\viterbi.cpp"
     ],

@@ -1,4 +1,5 @@
 #include "viterbi.hpp"
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -30,7 +31,8 @@ int main() {
   }
 
   std::ofstream outFile(
-      "D:\\Documents\\hw_autotune\\vitis\\viterbi\\data\\greedy_stream.out");
+      "D:\\Documents\\hw_autotune\\vitis\\viterbi\\data\\syn_online_"
+      "viterbi_big.out");
 
   for (int i = 0; i < prob.size(); ++i) {
     prob_stream_t prob_s;
@@ -40,7 +42,7 @@ int main() {
       prob_s.write(prob[i][j]);
     }
 
-    greedy_decode_lookahead_stream(prob_s, state);
+    online_windowed_viterbi(prob_s, state);
 
     outFile << state.read() << std::endl;
   }

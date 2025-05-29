@@ -46,16 +46,12 @@ int main() {
     shifts.write(tmp);
   }
 
-  pyin_helper(yin_frame, shifts, observation_probs_stream, voiced_prob_stream);
-
-  real_t voiced_prob = voiced_prob_stream.read();
+  pyin_helper(yin_frame, shifts, observation_probs_stream);
 
   for (int i = 0; i < 2 * n_pitch_bins; ++i) {
     std::cout << "[" << i << "] = " << observation_probs_stream.read() << " "
               << std::endl;
   }
-
-  std::cout << voiced_prob << std::endl;
 
   return EXIT_SUCCESS;
 }

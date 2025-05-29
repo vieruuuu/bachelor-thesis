@@ -1,6 +1,6 @@
 #pragma once
 
 #include "../pyin/pyin.hpp"
-#include <tuple>
+#include "../vocode/vocode.hpp"
 
 void autotune();

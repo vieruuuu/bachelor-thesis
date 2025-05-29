@@ -2,9 +2,13 @@
 
 #include "../common/common.hpp"
 
-std::vector<int>
-greedy_decode_lookahead(const std::vector<std::vector<double>> &prob,
-                        size_t lookahead);
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <algorithm>
+#include <cmath>
+#include <functional>
+#include <optional>
 
 constexpr size_t real_greedy_lookahead = 3;
 constexpr size_t greedy_lookahead = real_greedy_lookahead + 1;
@@ -14,3 +18,6 @@ using path_stream = hls::stream<index<N>, 1>;
 
 void greedy_decode_lookahead_stream(prob_stream_t &prob_stream,
                                     path_stream &path);
+
+void online_windowed_viterbi(prob_stream_t &prob_stream,
+                             path_stream &state_stream);

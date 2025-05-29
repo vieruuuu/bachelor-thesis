@@ -34,6 +34,84 @@
       "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
       "-fhlstoplevel=autotune",
       "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\autotune\\autotune.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\autotune\\autotune.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\frame\\frame.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\frame\\frame.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\closest_pitch_from_scale\\closest_pitch_from_scale.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\closest_pitch_from_scale\\closest_pitch_from_scale.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=autotune",
+      "-c",
       "D:\\Documents\\hw_autotune\\vitis\\pyin\\pyin.cpp"
     ],
     "file": "D:\\Documents\\hw_autotune\\vitis\\pyin\\pyin.cpp"
@@ -73,32 +151,6 @@
       "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
       "-fhlstoplevel=autotune",
       "-c",
-      "D:\\Documents\\hw_autotune\\vitis\\autotune\\autotune.cpp"
-    ],
-    "file": "D:\\Documents\\hw_autotune\\vitis\\autotune\\autotune.cpp"
-  },
-  {
-    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
-    "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
-      "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
-      "-fhlstoplevel=autotune",
-      "-c",
-      "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
-    ],
-    "file": "D:\\Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp"
-  },
-  {
-    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
-    "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
-      "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
-      "-fhlstoplevel=autotune",
-      "-c",
       "D:\\Documents\\hw_autotune\\vitis\\fft_c2r\\fft_c2r.cpp"
     ],
     "file": "D:\\Documents\\hw_autotune\\vitis\\fft_c2r\\fft_c2r.cpp"
@@ -115,32 +167,6 @@
       "D:\\Documents\\hw_autotune\\vitis\\fft_product_ifft\\fft_product_ifft.cpp"
     ],
     "file": "D:\\Documents\\hw_autotune\\vitis\\fft_product_ifft\\fft_product_ifft.cpp"
-  },
-  {
-    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
-    "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
-      "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
-      "-fhlstoplevel=autotune",
-      "-c",
-      "D:\\Documents\\hw_autotune\\vitis\\frame\\frame.cpp"
-    ],
-    "file": "D:\\Documents\\hw_autotune\\vitis\\frame\\frame.cpp"
-  },
-  {
-    "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",
-    "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
-      "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
-      "-fhlstoplevel=autotune",
-      "-c",
-      "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp"
-    ],
-    "file": "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp"
   },
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\autotune",

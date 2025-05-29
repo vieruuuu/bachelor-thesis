@@ -1,11 +1,13 @@
 #include "viterbi.hpp"
 
-static const real_t log_zero = hls::log(0.0 + tiny);
+using my_data_t = float; // ap_fixed<128, 20>;
 
-inline real_t get_log_p_init(index<N> i) {
-#pragma HLS inline
+static const my_data_t log_zero = hls::log(0.0 + tiny);
 
-  static const real_t p_init_val = hls::log(1.0 / n_pitch_bins);
+inline my_data_t get_log_p_init(const index<N> i) {
+#pragma HSL INLINE
+
+  static const my_data_t p_init_val = hls::log(1.0 / n_pitch_bins);
 
   if (i < n_pitch_bins) {
     return log_zero;
@@ -14,8 +16,8 @@ inline real_t get_log_p_init(index<N> i) {
   return p_init_val;
 }
 
-inline real_t get_log_trans(index<N> i, index<N> j) {
-#pragma HLS inline
+inline my_data_t get_log_trans(const index<N> i, const index<N> j) {
+#pragma HSL INLINE
 
   // Determine indices for the original matrices
   const index<2> switch_row = i / n_pitch_bins;
@@ -23,53 +25,112 @@ inline real_t get_log_trans(index<N> i, index<N> j) {
   const index<n_pitch_bins> trans_row = i % n_pitch_bins;
   const index<n_pitch_bins> trans_col = j % n_pitch_bins;
 
-  const real_t log_t_switch_element = log_t_switch[switch_row][switch_col];
+  const auto log_t_switch_element = log_t_switch[switch_row][switch_col];
 
-  const real_t log_transition_element = log_transition_unique_vals[
+  const auto log_transition_element = log_transition_unique_vals[
       //
       log_transition_index_map[trans_row][trans_col]
       //
   ];
 
   // log_transition_element can be zero
-  if (!log_transition_element) {
-    return log_zero;
+  if (log_transition_element) {
+    return log_t_switch_element + log_transition_element;
   }
 
-  return log_t_switch_element + log_transition_element;
+  return log_zero;
 }
 
-void greedy_decode_lookahead_stream(prob_stream_t &prob_stream,
-                                    path_stream &path) {
+inline my_data_t get_log_prob(const my_data_t prob) {
+#pragma HSL INLINE
 
-  static bool initialized = false;
-  static index<N> prev_path;
-
-  real_t best_score = -std::numeric_limits<real_t>::infinity();
-  index<N> best_state = 0;
-
-  for (index<N> s = 0; s < N; ++s) {
-#pragma HLS PIPELINE II = 1
-
-    const real_t log_trans =
-        initialized ? get_log_trans(prev_path, s) : get_log_p_init(s);
-
-    const real_t prob = prob_stream.read();
-
-    const real_t log_prob = prob ? hls::log(prob) : log_zero;
-
-    // score at current step
-    const real_t score = log_trans + log_prob;
-
-    // update best candidate
-    if (score > best_score) {
-      best_state = s;
-      best_score = score;
-    }
+  if (prob) {
+    return hls::log(prob);
   }
 
-  path.write(best_state);
-  prev_path = best_state;
+  return log_zero;
+}
 
-  initialized = true;
+constexpr size_t window_size = 4;
+constexpr size_t n_states = N;
+
+class DeltasWindow : public SlidingWindowPartitioned<my_data_t, n_states,
+                                                     n_states * window_size> {
+public:
+  DeltasWindow() : SlidingWindowPartitioned(log_zero) {
+    //
+    for (index<n_states> j = 0; j < n_states; j++) {
+      window[FRAMES - 1][j] = get_log_p_init(j) + log_zero;
+    }
+  }
+};
+
+using PsisWindow =
+    SlidingWindowPartitioned<int, n_states, n_states * window_size>;
+
+void ceva_after_init(prob_stream_t &prob_stream, const DeltasWindow &new_deltas,
+                     const PsisWindow &new_psis,
+                     stream<my_data_t, n_states> &delta_t,
+                     stream<int, n_states> &psi_t, path_stream &state_stream) {
+  auto maxDelta = -std::numeric_limits<my_data_t>::infinity();
+  auto maxPsi = 0;
+
+  // Calculate all possible transitions
+  // For each current state j, find the most likely previous state
+  for (index<n_states> j = 0; j < n_states; ++j) {
+    auto max_val = -std::numeric_limits<my_data_t>::infinity();
+    index<n_states> max_idx = 0;
+
+    for (index<n_states> i = 0; i < n_states; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+
+      const auto path_val =
+          get_log_trans(i, j) + new_deltas.at(window_size - 1, i);
+
+      if (path_val > max_val) {
+        max_val = path_val;
+        max_idx = i;
+      }
+    }
+
+    const auto currentDelta = max_val + get_log_prob(prob_stream.read());
+    const auto currentPsi = max_idx;
+
+    if (currentDelta > maxDelta) {
+      maxDelta = currentDelta;
+      maxPsi = currentPsi;
+    }
+
+    delta_t.write(currentDelta);
+    psi_t.write(currentPsi);
+  }
+
+  index<n_states> prev_path = maxPsi;
+
+  // Backtrack through the window
+  for (index<window_size> i = window_size - 2; i > 0; i--) {
+#pragma HLS UNROLL
+    prev_path = new_psis.at(i, prev_path);
+  }
+
+  // Return the state for the oldest observation
+  state_stream.write(std::min(prev_path, n_pitch_bins));
+}
+
+void online_windowed_viterbi(prob_stream_t &prob_stream,
+                             path_stream &state_stream) {
+  // Store log probabilities
+  static DeltasWindow new_deltas;
+  // Store backpointers
+  static PsisWindow new_psis(n_pitch_bins);
+
+  stream<my_data_t, n_states> delta_t;
+  stream<int, n_states> psi_t;
+
+  ceva_after_init(prob_stream, new_deltas, new_psis, delta_t, psi_t,
+                  state_stream);
+
+  // Store the values
+  new_deltas.slideLeft(delta_t);
+  new_psis.slideLeft(psi_t);
 }
