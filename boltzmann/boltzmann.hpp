@@ -2,4 +2,4 @@
 
 #include "../common/common.hpp"
 
-real_t boltzmann_pmf(int k, real_t lambda_param, int n);
+real_t boltzmann_pmf(const int k, const int n);

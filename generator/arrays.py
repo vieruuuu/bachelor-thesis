@@ -32,7 +32,7 @@ def generate_arrays():
     ###
     thresholds = np.linspace(0, 1, N_THRESHOLDS + 1)
 
-    common_arrays += f"constexpr unsigned int thresholds_size = n_thresholds + 1;\n"
+    common_arrays += f"constexpr size_t thresholds_size = n_thresholds + 1;\n"
 
     common_arrays += python_array_to_cpp(
         thresholds, "thresholds", array_type, "[thresholds_size]"
@@ -48,11 +48,18 @@ def generate_arrays():
     ###
     beta_probs = np.diff(beta_cdf)
 
-    common_arrays += f"constexpr unsigned int beta_probs_size = n_thresholds;\n"
+    common_arrays += f"constexpr size_t beta_probs_size = n_thresholds;\n"
 
     common_arrays += python_array_to_cpp(
         beta_probs, "beta_probs", array_type, "[beta_probs_size]"
     )
+
+    beta_sums = np.concatenate(([0], np.cumsum(beta_probs[:N_THRESHOLDS])))
+
+    common_arrays += python_array_to_cpp(
+        beta_sums, "beta_sums", array_type, "[thresholds_size]"
+    )
+
     ###
 
     ###
