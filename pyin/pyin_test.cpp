@@ -76,10 +76,12 @@ int main() {
   std::cout << "am citit: " << i << std::endl;
 
   std::ofstream outputFile_f0(
-      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\new_new_new_viterbi_"
+      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\current_new_new_new_"
+      "viterbi_"
       "nice_fft_big.out");
   std::ofstream outputFile_f0_corrected(
-      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\new_new_new_viterbi_nice_"
+      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\current_new_new_new_"
+      "viterbi_nice_"
       "fft"
       "corrected_big.out");
 
@@ -119,10 +121,10 @@ int main() {
   }
 
   auto vocoded =
-      vocode(signal, f0_vec, f0_corrected_vec, sample_rate, hop_length, 5.0);
+      vocode(signal, f0_vec, f0_corrected_vec, sample_rate, hop_length, 1.0);
 
   writeVectorToFile(vocoded, "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
-                             "new_new_new_viterbi_nice_fft_vocoded_big.out");
+                             "vocoded_1_ms.out");
 
   std::cout << "rezultat: " << f0_count - 4 << std::endl;
 

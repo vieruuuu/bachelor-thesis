@@ -88,18 +88,19 @@
     "stop_token": "cpp",
     "thread": "cpp",
     "random": "cpp",
-    "bitset": "cpp"
-  }, 
-  "clangd.arguments": [
-    "-IC:\\Xilinx\\Vitis\\2024.2\\include",
-    "-IC:\\Xilinx\\Vitis\\2024.2\\include\\etc",
-    "-IC:\\Xilinx\\Vitis\\2024.2\\include\\ap_sysc",
-    "-IC:\\Xilinx\\Vitis\\2024.2\\win64\\tools\\auto_cc\\include",
-    "-IC:\\Xilinx\\Vitis\\2024.2\\win64\\tools\\systemc\\include"
-  ],
+    "bitset": "cpp",
+    "cstdarg": "cpp",
+    "cwctype": "cpp",
+    "memory_resource": "cpp",
+    "string_view": "cpp",
+    "ranges": "cpp"
+  },
   "cSpell.words": [
     "ifft",
     "probs",
     "viterbi"
-  ]
+  ],
+  "terminal.integrated.env.windows": {
+    "PATH": "C:\\Xilinx\\Vitis\\2024.2\\bin;${env:PATH}"
+  }
 }

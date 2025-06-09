@@ -31,3 +31,4 @@ _ide/
 *.in
 *.out
 *.hlscompile_summary
+.hls.failed
