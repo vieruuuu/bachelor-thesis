@@ -74,7 +74,6 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
   stream<int, yin_frame_size> trough_index;
 
   bool trough_thresholds[yin_frame_size][thresholds_size - 1] = {false};
-  int trough_positions[yin_frame_size][thresholds_size - 1] = {0};
   real_t probs[yin_frame_size] = {0.0};
   real_t yin_frame[yin_frame_size];
   real_t parabolic_shifts[yin_frame_size];
@@ -115,7 +114,9 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
   }
 
   const index<yin_frame_size> trough_thresholds_size = last_trough_index;
+
   index<thresholds_size> n_thresholds_below_min = 0;
+  int col_sum[thresholds_size - 1] = {0};
   {
     // Find which troughs are below each threshold
     for (index<yin_frame_size> i = 0; i < trough_thresholds_size; ++i) {
@@ -124,74 +125,47 @@ void pyin_helper(stream<real_t, yin_frame_size> &yin_frame_stream,
       const auto trough_height = trough_heights.read();
       const auto is_global_min_index = i == global_min_index;
 
-      for (index<thresholds_size> j = 1; j < thresholds_size; ++j) {
-        const auto trough_threshold_value = trough_height < thresholds[j];
+      for (index<thresholds_size - 1> j = 0; j < thresholds_size - 1; ++j) {
+        const auto trough_threshold_value = trough_height < thresholds[j + 1];
 
         n_thresholds_below_min +=
             is_global_min_index && !trough_threshold_value;
-        trough_thresholds[i][j - 1] = trough_threshold_value;
+        trough_thresholds[i][j] = trough_threshold_value;
+        col_sum[j] += trough_threshold_value;
       }
     }
   }
+  // Sum beta probabilities for thresholds below minimum
+  const auto beta_sum = beta_sums[n_thresholds_below_min];
+
+  probs[global_min_index] += no_trough_prob * beta_sum;
 
   // Define the prior over the troughs using Boltzmann distribution
   for (size_t j = 0; j < thresholds_size - 1; ++j) {
-    int col_sum = 0;
-    for (size_t i = 0; i < trough_thresholds_size; ++i) {
-#pragma HLS LOOP_TRIPCOUNT max = yin_frame_size
+    const auto trough_count = col_sum[j];
 
-      col_sum += trough_thresholds[i][j];
-    }
+    if (trough_count > 0) {
+      const auto beta_prob = beta_probs[j];
 
-    if (col_sum > 0) {
       int cum_sum = 0;
 
+    boltzmann:
       for (size_t i = 0; i < trough_thresholds_size; ++i) {
 #pragma HLS LOOP_TRIPCOUNT max = yin_frame_size
 
+        // Calculate trough prior using Boltzmann distribution
         if (trough_thresholds[i][j]) {
-          trough_positions[i][j] = cum_sum;
+          const auto trough_prior = boltzmann_pmf(cum_sum, trough_count);
+
+          // For each threshold add probability to global minimum if no trough
+          // is below threshold, else add probability to each trough below
+          // threshold biased by prior
+          probs[i] += trough_prior * beta_prob;
 
           cum_sum++;
         }
       }
     }
-  }
-
-trough_prior:
-  for (size_t j = 0; j < thresholds_size - 1; ++j) {
-    // Count non-zero elements in each column
-    int trough_count = 0;
-
-  trough_count:
-    for (size_t i = 0; i < trough_thresholds_size; ++i) {
-#pragma HLS LOOP_TRIPCOUNT max = yin_frame_size
-      trough_count += trough_thresholds[i][j];
-    }
-
-    const auto beta_prob = beta_probs[j];
-  boltzmann:
-    for (size_t i = 0; i < trough_thresholds_size; ++i) {
-#pragma HLS LOOP_TRIPCOUNT max = yin_frame_size
-
-      // Calculate trough prior using Boltzmann distribution
-      if (trough_thresholds[i][j]) {
-        const auto trough_prior =
-            boltzmann_pmf(trough_positions[i][j], trough_count);
-
-        // For each threshold add probability to global minimum if no trough is
-        // below threshold, else add probability to each trough below threshold
-        // biased by prior
-        probs[i] += trough_prior * beta_prob;
-      }
-    }
-  }
-
-  {
-    // Sum beta probabilities for thresholds below minimum
-    const auto beta_sum = beta_sums[n_thresholds_below_min];
-
-    probs[global_min_index] += no_trough_prob * beta_sum;
   }
 
   // Calculate voiced probability

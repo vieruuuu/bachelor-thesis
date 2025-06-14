@@ -75,12 +75,11 @@ int main() {
 
   std::cout << "am citit: " << i << std::endl;
 
-  std::ofstream outputFile_f0(
-      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\current_new_new_new_"
-      "viterbi_"
-      "nice_fft_big.out");
+  std::ofstream outputFile_f0("D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
+                              "viterbi_"
+                              "nice_fft_big.out");
   std::ofstream outputFile_f0_corrected(
-      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\current_new_new_new_"
+      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
       "viterbi_nice_"
       "fft"
       "corrected_big.out");
@@ -102,7 +101,7 @@ int main() {
       y_stream.write(signal[j + i * hop_length]);
     }
 
-    pyin(y_stream, f0, corrected_f0);
+    pyin(y_stream, f0, corrected_f0, Scales::EFLAT_MIN);
     f0_count++;
 
     auto f0_value = f0.read();
@@ -120,11 +119,12 @@ int main() {
     outputFile_f0_corrected << corrected_f0_value << '\n';
   }
 
-  auto vocoded =
-      vocode(signal, f0_vec, f0_corrected_vec, sample_rate, hop_length, 1.0);
+  // auto vocoded =
+  //     vocode(signal, f0_vec, f0_corrected_vec, sample_rate, hop_length, 1.0);
 
-  writeVectorToFile(vocoded, "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
-                             "vocoded_1_ms.out");
+  // writeVectorToFile(vocoded,
+  // "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
+  //                            "vocoded_baietu_1_ms.out");
 
   std::cout << "rezultat: " << f0_count - 4 << std::endl;
 

@@ -1,7 +1,5 @@
 #include "viterbi.hpp"
 
-using my_data_t = float; // ap_fixed<128, 20>;
-
 static const my_data_t log_zero = hls::log(0.0 + tiny);
 
 inline my_data_t get_log_p_init(const index<N> i) {
@@ -51,14 +49,10 @@ inline my_data_t get_log_prob(const my_data_t prob) {
   return log_zero;
 }
 
-constexpr size_t window_size = 4;
-constexpr size_t n_states = N;
-
 class DeltasWindow : public SlidingWindowPartitioned<my_data_t, n_states,
                                                      n_states * window_size> {
 public:
   DeltasWindow() : SlidingWindowPartitioned(log_zero) {
-    //
     for (index<n_states> j = 0; j < n_states; j++) {
       window[FRAMES - 1][j] = get_log_p_init(j) + log_zero;
     }

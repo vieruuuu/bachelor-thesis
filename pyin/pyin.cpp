@@ -24,7 +24,7 @@ void frame(stream<real_signal, hop_length> &y,
 }
 
 void pyin(stream<real_signal, hop_length> &y, stream<real_t, 1> &f0_stream,
-          stream<real_t, 1> &corrected_f0_stream) {
+          stream<real_t, 1> &corrected_f0_stream, Scales scale) {
 #pragma HLS DATAFLOW
 
   stream<real_signal, frame_length> y_frame;
@@ -47,6 +47,5 @@ void pyin(stream<real_signal, hop_length> &y, stream<real_t, 1> &f0_stream,
   // greedy_decode_lookahead_stream(observation_probs_stream, states_stream);
   online_windowed_viterbi(observation_probs_stream, states_stream);
 
-  decode_state(Scales::EFLAT_MIN, states_stream, f0_stream,
-               corrected_f0_stream);
+  decode_state(scale, states_stream, f0_stream, corrected_f0_stream);
 }
