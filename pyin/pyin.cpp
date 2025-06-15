@@ -7,7 +7,7 @@ void frame(stream<real_signal, hop_length> &y,
   // shift_left_buffer
   for (int i = 0; i < frame_length - hop_length; ++i) {
 #pragma HLS PIPELINE II = 1 rewind
-    const real_signal tmp = buffer[i + hop_length];
+    const auto tmp = buffer[i + hop_length];
 
     y_frame.write(tmp);
     buffer[i] = tmp;
@@ -16,7 +16,7 @@ void frame(stream<real_signal, hop_length> &y,
   // read_elements
   for (int i = frame_length - hop_length; i < frame_length; ++i) {
 #pragma HLS PIPELINE II = 1 rewind
-    const real_signal tmp = y.read();
+    const auto tmp = y.read();
 
     y_frame.write(tmp);
     buffer[i] = tmp;
@@ -28,8 +28,8 @@ void pyin(stream<real_signal, hop_length> &y, stream<real_t, 1> &f0_stream,
 #pragma HLS DATAFLOW
 
   stream<real_signal, frame_length> y_frame;
-  stream<real_t, yin_frame_size> yin_frame1;
-  stream<real_t, yin_frame_size> yin_frame2;
+  stream<real_t, yin_frame_size> yin_frame;
+  stream<real_t, yin_frame_size> yin_frame_array[2];
   stream<real_t, yin_frame_size> parabolic_shifts;
   stream<real_t, 2 * n_pitch_bins> observation_probs_stream;
   path_stream states_stream;
@@ -37,12 +37,13 @@ void pyin(stream<real_signal, hop_length> &y, stream<real_t, 1> &f0_stream,
   frame(y, y_frame);
 
   // Compute yin for each frame.
-  cumulative_mean_normalized_difference(y_frame, yin_frame1, yin_frame2);
+  cumulative_mean_normalized_difference(y_frame, yin_frame);
 
-  // Parabolic interpolation.
-  parabolic_interpolation(yin_frame1, parabolic_shifts);
+  duplicate_stream<real_t, yin_frame_size, 2>(yin_frame, yin_frame_array);
 
-  pyin_helper(yin_frame2, parabolic_shifts, observation_probs_stream);
+  parabolic_interpolation(yin_frame_array[0], parabolic_shifts);
+
+  pyin_helper(yin_frame_array[1], parabolic_shifts, observation_probs_stream);
 
   // greedy_decode_lookahead_stream(observation_probs_stream, states_stream);
   online_windowed_viterbi(observation_probs_stream, states_stream);

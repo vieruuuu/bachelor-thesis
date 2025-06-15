@@ -108,3 +108,19 @@ public:
     }
   }
 };
+
+template <typename T, size_t STREAM_SIZE, size_t STREAMS>
+void duplicate_stream(stream<T, STREAM_SIZE> &in_stream,
+                      stream<T, STREAM_SIZE> out_streams[STREAMS]) {
+  for (counter<STREAM_SIZE> i = 0; i < STREAM_SIZE; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+
+    const auto value = in_stream.read();
+
+    for (index<STREAMS> s = 0; s < STREAMS; ++s) {
+#pragma HLS UNROLL
+
+      out_streams[s].write(value);
+    }
+  }
+}

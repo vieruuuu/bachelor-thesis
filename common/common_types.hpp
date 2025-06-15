@@ -10,20 +10,15 @@
 #include <limits>
 #include <vector>
 
-constexpr int real_signal_width = 32;
+constexpr int real_signal_width = 24;
 
 using real_signal = ap_fixed<real_signal_width, 1>;
 
-using data_t = double;
-using real_t = double;
+using data_t = float;
+using real_t = float;
 using complex_t = std::complex<data_t>;
 
 template <typename T, int DEPTH> using stream = hls::stream<T, DEPTH>;
-
-typedef double t_data;
-typedef std::vector<t_data> t_data_2d;
-typedef std::vector<t_data_2d> t_data_3d;
-typedef std::vector<t_data_3d> t_data_4d;
 
 constexpr real_t epsilon = std::numeric_limits<real_t>::epsilon();
 constexpr real_t tiny = std::numeric_limits<real_t>::min();

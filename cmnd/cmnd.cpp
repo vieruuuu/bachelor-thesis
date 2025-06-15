@@ -157,8 +157,7 @@ void autocorrelate_new(stream<real_signal, frame_length> &y,
 // Fill output
 void diff_cmnd_output(stream<cumsum_sq_type, K> &cumsum_sq,
                       stream<fft_real_scaled, K + 1> &acf,
-                      stream<real_t, yin_frame_size> &yin_frame1,
-                      stream<real_t, yin_frame_size> &yin_frame2) {
+                      stream<real_t, yin_frame_size> &yin_frame) {
   using d_cumsum_running_type = ap_fixed<64, 20>;
 
   d_cumsum_running_type d_cumsum_running =
@@ -177,8 +176,7 @@ void diff_cmnd_output(stream<cumsum_sq_type, K> &cumsum_sq,
       const d_cumsum_running_type dkk = dk * k;
       const d_cumsum_running_type result = dkk / d_cumsum_running;
 
-      yin_frame1.write(result);
-      yin_frame2.write(result);
+      yin_frame.write(result);
     }
   }
 }
@@ -188,8 +186,7 @@ void diff_cmnd_output(stream<cumsum_sq_type, K> &cumsum_sq,
 // returns yin: [(max_period-min_period+1)][n_frames]
 void cumulative_mean_normalized_difference(
     stream<real_signal, frame_length> &y_frame_stream,
-    stream<real_t, yin_frame_size> &yin_frame1,
-    stream<real_t, yin_frame_size> &yin_frame2) {
+    stream<real_t, yin_frame_size> &yin_frame) {
 #pragma HLS DATAFLOW
 
   stream<fft_real_scaled, K + 1> acf;
@@ -198,7 +195,5 @@ void cumulative_mean_normalized_difference(
 
   autocorrelate_new(y_frame_stream, acf, cumsum_sq);
 
-  // generate_dk(cumsum_sq, acf, dk_s);
-
-  diff_cmnd_output(cumsum_sq, acf, yin_frame1, yin_frame2);
+  diff_cmnd_output(cumsum_sq, acf, yin_frame);
 }

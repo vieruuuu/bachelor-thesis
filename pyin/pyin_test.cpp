@@ -57,15 +57,15 @@ bool writeVectorToFile(const std::vector<double> &data,
 int main() {
   // Read data from file
   std::ifstream infile(
-      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\blue_pill_long.in");
+      "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\blue_pill.in");
 
   if (!infile) {
     std::cerr << "Could not open the file data.txt." << std::endl;
     return 1;
   }
 
-  t_data_2d signal;
-  t_data value;
+  std::vector<real_t> signal;
+  real_t value;
   int i = 0;
 
   while (infile >> value) {
@@ -77,12 +77,12 @@ int main() {
 
   std::ofstream outputFile_f0("D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
                               "viterbi_"
-                              "nice_fft_big.out");
+                              "nice_fft_big_float_short.out");
   std::ofstream outputFile_f0_corrected(
       "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
       "viterbi_nice_"
       "fft"
-      "corrected_big.out");
+      "corrected_big_float_short.out");
 
   outputFile_f0 << std::fixed << std::setprecision(5);
   outputFile_f0_corrected << std::fixed << std::setprecision(5);

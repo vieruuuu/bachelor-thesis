@@ -198,7 +198,8 @@ LOG2_LOOP:
     }
   }
 
-  voiced_prob = hls::max(0.0, hls::min(1.0, voiced_prob));
+  voiced_prob = hls::max(static_cast<real_t>(0.0),
+                         hls::min(static_cast<real_t>(1.0), voiced_prob));
 
   // Set unvoiced probabilities using full precision division
   const auto unvoiced_prob =

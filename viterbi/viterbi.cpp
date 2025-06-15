@@ -62,6 +62,54 @@ public:
 using PsisWindow =
     SlidingWindowPartitioned<int, n_states, n_states * window_size>;
 
+template <size_t instances>
+void drog(index<n_states> j, const DeltasWindow &new_deltas,
+          stream<my_data_t, 1> &max_val_stream,
+          stream<index<n_states>, 1> &max_idx_stream) {
+  my_data_t max_val_array[instances];
+  index<n_states> max_idx_array[instances] = {0};
+
+  for (index<instances> c = 0; c < instances; ++c) {
+#pragma HLS UNROLL
+
+    max_val_array[c] = -std::numeric_limits<my_data_t>::infinity();
+  }
+
+  constexpr auto aa = n_states / instances;
+
+  for (index<n_states> i = 0; i < aa; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+
+    for (index<instances> c = 0; c < instances; ++c) {
+#pragma HLS UNROLL
+
+      const auto i_real = i + c * aa;
+
+      const auto path_val =
+          get_log_trans(i_real, j) + new_deltas.at(window_size - 1, i_real);
+
+      if (path_val > max_val_array[c]) {
+        max_val_array[c] = path_val;
+        max_idx_array[c] = i_real;
+      }
+    }
+  }
+
+  auto max_val = max_val_array[0];
+  auto max_idx = max_idx_array[0];
+
+  for (index<instances> c = 1; c < instances; ++c) {
+#pragma HLS UNROLL
+    if (max_val_array[c] > max_val) {
+      max_val = max_val_array[c];
+      max_idx = max_idx_array[c];
+    }
+  }
+
+  max_val_stream.write(max_val);
+  max_idx_stream.write(max_idx);
+}
+
 void ceva_after_init(prob_stream_t &prob_stream, const DeltasWindow &new_deltas,
                      const PsisWindow &new_psis,
                      stream<my_data_t, n_states> &delta_t,
@@ -72,23 +120,14 @@ void ceva_after_init(prob_stream_t &prob_stream, const DeltasWindow &new_deltas,
   // Calculate all possible transitions
   // For each current state j, find the most likely previous state
   for (index<n_states> j = 0; j < n_states; ++j) {
-    auto max_val = -std::numeric_limits<my_data_t>::infinity();
-    index<n_states> max_idx = 0;
+    stream<my_data_t, 1> max_val_stream;
+    stream<index<n_states>, 1> max_idx_stream;
 
-    for (index<n_states> i = 0; i < n_states; ++i) {
-#pragma HLS PIPELINE II = 1 rewind
+    drog<6>(j, new_deltas, max_val_stream, max_idx_stream);
 
-      const auto path_val =
-          get_log_trans(i, j) + new_deltas.at(window_size - 1, i);
-
-      if (path_val > max_val) {
-        max_val = path_val;
-        max_idx = i;
-      }
-    }
-
-    const auto currentDelta = max_val + get_log_prob(prob_stream.read());
-    const auto currentPsi = max_idx;
+    const auto currentDelta =
+        max_val_stream.read() + get_log_prob(prob_stream.read());
+    const auto currentPsi = max_idx_stream.read();
 
     if (currentDelta > maxDelta) {
       maxDelta = currentDelta;
