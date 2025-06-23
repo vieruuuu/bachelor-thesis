@@ -1,0 +1,171 @@
+<ENTRY>
+{
+ "thisFile": "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune\\autotune.hlsrun_package_summary",
+ "connectId": "",
+ "serverToken": "",
+ "timestamp": "0"
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_CmdStep",
+ "dateTimestamp": "06/23/25 18:06:36",
+ "timestampMillis": "1750691196370",
+ "buildStep": {
+  "cmdId": "2e20674d-a9cd-4db1-8730-3a1613c3c17d",
+  "name": "vitis-run",
+  "logFile": "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune\\logs\\autotune.steps.log",
+  "commandLine": "C:/Xilinx/Vitis/2024.2/bin/unwrapped/win64.o/vitis-run.exe  --mode hls --package --config D:\\Documents\\hw_autotune\\vitis\\autotune\\hls_config.cfg --work_dir autotune ",
+  "args": [
+   "--mode",
+   "hls",
+   "--package",
+   "--config",
+   "D:\\Documents\\hw_autotune\\vitis\\autotune\\hls_config.cfg",
+   "--work_dir",
+   "autotune"
+  ],
+  "iniFiles": [],
+  "cwd": "D:\\Documents\\hw_autotune\\vitis\\autotune"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "06/23/25 18:06:36",
+ "timestampMillis": "1750691196370",
+ "status": {
+  "cmdId": "2e20674d-a9cd-4db1-8730-3a1613c3c17d",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_FlowMetaData",
+ "dateTimestamp": "06/23/25 18:06:41",
+ "timestampMillis": "1750691201767",
+ "buildSummary": {
+  "hardwarePlatform": "",
+  "hardwareDsa": "",
+  "platformDirectory": "",
+  "runtime": "",
+  "systemConfig": "",
+  "flow": "BF_RUN",
+  "target": "TT_HLS_IP",
+  "kernels": [
+   {
+    "base": {
+     "type": "KERNEL",
+     "name": "autotune",
+     "file": "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune\\autotune.zip",
+     "reports": [],
+     "uuid": ""
+    },
+    "sources": [
+     "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune.hpp",
+     "D:/Documents\\hw_autotune\\vitis\\pyin\\pyin.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\cmnd\\cmnd.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\boltzmann\\boltzmann.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\frame\\frame.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\viterbi\\viterbi.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\fft_c2r\\fft_c2r.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\fft_r2c\\fft_r2c.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\fft_product_ifft\\fft_product_ifft.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\pyin_helper\\pyin_helper.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\closest_pitch_from_scale\\closest_pitch_from_scale.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\stft\\stft.cpp",
+     "D:/Documents\\hw_autotune\\vitis\\istft\\istft.cpp"
+    ],
+    "psSources": [],
+    "cuNames": [],
+    "type": "HLS",
+    "frequency": 0,
+    "freqUnits": ""
+   }
+  ],
+  "toolVersion": "2024.2"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_SubCmdStep",
+ "dateTimestamp": "06/23/25 18:06:41",
+ "timestampMillis": "1750691201768",
+ "buildStep": {
+  "cmdId": "178fc38a-0413-4c58-a698-d015b31da72c",
+  "name": "",
+  "logFile": "D:/Documents\\hw_autotune\\vitis\\autotune\\autotune\\hls\\hls.log",
+  "commandLine": "",
+  "args": [],
+  "iniFiles": [],
+  "cwd": "D:\\Documents\\hw_autotune\\vitis\\autotune"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "06/23/25 18:06:41",
+ "timestampMillis": "1750691201768",
+ "status": {
+  "cmdId": "178fc38a-0413-4c58-a698-d015b31da72c",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "06/23/25 18:07:18",
+ "timestampMillis": "1750691238593",
+ "status": {
+  "cmdId": "178fc38a-0413-4c58-a698-d015b31da72c",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "06/23/25 18:07:18",
+ "timestampMillis": "1750691238696",
+ "status": {
+  "cmdId": "2e20674d-a9cd-4db1-8730-3a1613c3c17d",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "06/23/25 18:07:18",
+ "timestampMillis": "1750691238696",
+ "report": {
+  "path": "",
+  "name": "",
+  "fileType": "HTML",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "06/23/25 18:07:18",
+ "timestampMillis": "1750691238696",
+ "report": {
+  "path": "",
+  "name": "",
+  "fileType": "BINARY_PROTOBUF",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>

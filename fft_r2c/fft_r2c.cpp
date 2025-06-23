@@ -1,39 +1,56 @@
 #include "fft_r2c.hpp"
 
-void write_forward_config_r2c(fft_config_stream &fft_config_s) {
-  static fft_config config;
+template <typename params>
+void write_forward_config_r2c(
+    stream<hls::ip_fft::config_t<params>, 1> &fft_config_s) {
+  static hls::ip_fft::config_t<params> config;
 
   config.setDir(1);
 
   fft_config_s.write(config);
 }
 
-void write_exp_r2c(fft_status_stream &fft_status_s, fft_exp_stream &exp) {
+template <typename params>
+void write_exp_r2c(stream<hls::ip_fft::status_t<params>, 1> &fft_status_s,
+                   fft_exp_stream &exp) {
   exp.write(fft_status_s.read().getBlkExp());
 }
 
-void prepare_input_r2c(fft_real_stream &in,
-                       fft_complex_stream &complex_in_buffer) {
-  for (index<fft_length> i = 0; i < fft_length; ++i) {
+template <size_t fft_size>
+void prepare_input_r2c(stream<fft_real, fft_size> &in,
+                       stream<fft_complex, fft_size> &complex_in_buffer) {
+  for (index<fft_size> i = 0; i < fft_size; ++i) {
 #pragma HLS pipeline II = 1 rewind
 
     complex_in_buffer.write({in.read(), 0});
   }
 }
 
-void fft_r2c(fft_real_stream &in, fft_complex_stream &out,
-             fft_exp_stream &exp) {
+template <size_t fft_size, typename params>
+void fft_r2c_template(stream<fft_real, fft_size> &in,
+                      stream<fft_complex, fft_size> &out, fft_exp_stream &exp) {
 #pragma HLS dataflow
 
-  fft_complex_stream complex_in_buffer;
-  fft_config_stream fft_config_s;
-  fft_status_stream fft_status_s;
+  stream<fft_complex, fft_size> complex_in_buffer;
+  stream<hls::ip_fft::config_t<params>, 1> fft_config_s;
+  stream<hls::ip_fft::status_t<params>, 1> fft_status_s;
 
-  write_forward_config_r2c(fft_config_s);
+  write_forward_config_r2c<params>(fft_config_s);
 
-  prepare_input_r2c(in, complex_in_buffer);
+  prepare_input_r2c<fft_size>(in, complex_in_buffer);
 
-  hls::fft<fft_params>(complex_in_buffer, out, fft_status_s, fft_config_s);
+  hls::fft<params>(complex_in_buffer, out, fft_status_s, fft_config_s);
 
-  write_exp_r2c(fft_status_s, exp);
+  write_exp_r2c<params>(fft_status_s, exp);
+}
+
+void fft_r2c(stream<fft_real, fft_r2c_size> &in,
+             stream<fft_complex, fft_r2c_size> &out, fft_exp_stream &exp) {
+  return fft_r2c_template<fft_r2c_size, fft_params>(in, out, exp);
+}
+
+void fft_r2c_short(stream<fft_real, fft_r2c_short_size> &in,
+                   stream<fft_complex, fft_r2c_short_size> &out,
+                   fft_exp_stream &exp) {
+  return fft_r2c_template<fft_r2c_short_size, fft_params_short>(in, out, exp);
 }

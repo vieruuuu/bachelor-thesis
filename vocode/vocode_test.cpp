@@ -73,190 +73,148 @@ std::vector<double> read_vector_from_file_robust(const std::string &filename) {
   return data_vector;
 }
 
-/**
- * @brief Compares two vectors of doubles for approximate equality.
- *
- * @param vec1 The first vector.
- * @param vec2 The second vector.
- * @param tolerance The maximum allowed absolute difference between
- * corresponding elements.
- * @return true if the vectors are approximately equal, false otherwise.
- */
-bool compare_vectors(const std::vector<double> &vec1,
-                     const std::vector<double> &vec2, double tolerance) {
-  if (vec1.size() != vec2.size()) {
-    std::cerr << "Error: Vector sizes differ (" << vec1.size() << " vs "
-              << vec2.size() << ")" << std::endl;
-    return false;
+void frame(stream<real_signal, hop_length> &y,
+           stream<real_signal, frame_length> &y_frame) {
+  static real_signal buffer[frame_length] = {0};
+
+  // shift_left_buffer
+  for (int i = 0; i < frame_length - hop_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const auto tmp = buffer[i + hop_length];
+
+    y_frame.write(tmp);
+    buffer[i] = tmp;
   }
 
-  size_t errors = 0;
-  size_t non_zero = 0;
+  // read_elements
+  for (int i = frame_length - hop_length; i < frame_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const auto tmp = y.read();
 
-  for (size_t i = 0; i < vec1.size(); ++i) {
-    if (vec2[i] != 0) {
-      non_zero++;
-    }
-
-    if (std::fabs(vec1[i] - vec2[i]) > tolerance) {
-      errors++;
-      if (errors < 100) {
-        std::cerr << "Error: Mismatch at index " << i << ". "
-                  << "Expected: " << std::fixed << std::setprecision(10)
-                  << vec2[i] << ", Got: " << std::fixed << std::setprecision(10)
-                  << vec1[i] << ", Difference: " << std::fabs(vec1[i] - vec2[i])
-                  << std::endl;
-      }
-      // return false;
-    }
+    y_frame.write(tmp);
+    buffer[i] = tmp;
   }
-
-  std::cerr << errors << "/" << non_zero << std::endl;
-
-  return true;
 }
 
-bool writeVectorToFile(const std::vector<double> &data,
-                       const std::string &filename,
-                       int precision = 18) // Default precision updated to 18
-{
-  // 1. Create and open an output file stream (ofstream)
-  std::ofstream outFile(filename);
+// int main2() {
+//   // --- Configuration ---
+//   const std::string audio_file =
+//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.in";
+//   const std::string original_f0_file =
+//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0.in";
+//   const std::string corrected_f0_file =
+//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_corrected_f0.in";
+//   const std::string expected_output_file =
+//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.out";
 
-  // 2. Check if the file was opened successfully
-  if (!outFile.is_open()) {
-    std::cerr << "Error: Could not open file '" << filename << "' for writing."
-              << std::endl;
-    return false; // Indicate failure
-  }
+//   std::vector<double> audio = read_vector_from_file_robust(audio_file);
+//   std::vector<double> original_f0 =
+//       read_vector_from_file_robust(original_f0_file);
+//   std::vector<double> corrected_f0 =
+//       read_vector_from_file_robust(corrected_f0_file);
 
-  // 3. Set the output precision for floating-point numbers
-  //    std::scientific forces scientific notation (e.g., 1.2345e+02).
-  //    The precision value controls the number of digits *after* the decimal
-  //    point. For maximum precision that guarantees round-trip conversion,
-  //    consider: outFile <<
-  //    std::setprecision(std::numeric_limits<double>::max_digits10);
-  outFile << std::scientific
-          << std::setprecision(precision); // Use scientific notation
+//   size_t real_index = 0;
 
-  // 4. Iterate through the vector and write each element to the file
-  for (const double &value : data) {
-    outFile << value << '\n'; // Write value followed by a newline
-    // Optional: Check for write errors after each write
-    if (!outFile) {
-      std::cerr << "Error: Failed to write to file '" << filename << "'."
-                << std::endl;
-      // outFile is automatically closed by its destructor when it goes out of
-      // scope
-      return false;
-    }
-  }
+//   for (size_t i = 0; i < audio.size(); i += hop_length) {
+//     stream<real_signal, hop_length> y;
+//     stream<real_signal, frame_length> y_frame;
+//     stream<real_t, 1> original_f0_stream;
+//     stream<real_t, 1> corrected_f0_stream;
+//     stream<fft_complex, fft_r2c_short_size> S_shifted;
+//     fft_exp_stream exp_new;
 
-  // 5. File stream is automatically closed when 'outFile' goes out of scope
-  // (RAII).
-  //    outFile.close(); // Explicit close is optional here.
+//     for (size_t f = 0; f < hop_length; ++f) {
+//       y.write(audio[i + f]);
+//     }
 
-  std::cout << "Successfully wrote vector data to '" << filename
-            << "' using scientific notation." << std::endl;
-  return true; // Indicate success
-}
+//     frame(y, y_frame);
+
+//     if (i / hop_length > 2) {
+//       original_f0_stream.write(original_f0[real_index]);
+//       corrected_f0_stream.write(corrected_f0[real_index]);
+
+//       vocode(y_frame, original_f0_stream, corrected_f0_stream, S_shifted,
+//              exp_new);
+
+//       const auto eeee = exp_new.read();
+
+//       std::cout << real_index + 1 << "\tscale:" << eeee << std::endl;
+//       const auto eaeaea = real_t(1 << eeee);
+//       for (size_t j = 0; j < frame_length; ++j) {
+//         const auto element = S_shifted.read();
+//         const auto element_scaled =
+//             std::complex<real_t>(element.real().to_float() * eaeaea,
+//                                  element.imag().to_float() * eaeaea);
+
+//         if (j > 4 && j < 10) {
+//           std::cout << element_scaled << "\t";
+//         }
+//       }
+
+//       std::cout << std::endl << std::endl;
+
+//       real_index++;
+//     } else {
+//       for (size_t j = 0; j < frame_length; ++j) {
+//         y_frame.read();
+//         // std::cout << y_frame.read() << " ";
+//       }
+//     }
+//   }
+// }
 
 int main() {
   // --- Configuration ---
   const std::string audio_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\audio.in";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_long.in";
   const std::string original_f0_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\original_f0.in";
-  const std::string target_f0_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\target_f0.in";
-  const std::string expected_output_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\audio.out";
-  std::string outputFilename =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\audio_tb.out";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0_long.in";
+  const std::string corrected_f0_file =
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_corrected_f0_"
+      "long.in";
+  const std::string output_file =
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.sim.out";
 
-  // Define sample rate and hop length (adjust as needed for your vocode
-  // implementation)
-  const double fade_duration_ms = 1.0; // Default or specific value
+  std::ofstream outFile(output_file);
 
-  // Tolerance for floating-point comparisons
-  const double tolerance = 1e-6; // Adjust if necessary
+  std::vector<double> audio = read_vector_from_file_robust(audio_file);
+  std::vector<double> original_f0 =
+      read_vector_from_file_robust(original_f0_file);
+  std::vector<double> corrected_f0 =
+      read_vector_from_file_robust(corrected_f0_file);
 
-  std::cout << "--- Starting Vocode Test ---" << std::endl;
-  std::cout << "Sample Rate: " << sample_rate << std::endl;
-  std::cout << "Hop Length: " << hop_length << std::endl;
-  std::cout << "Fade Duration (ms): " << fade_duration_ms << std::endl;
-  std::cout << "Comparison Tolerance: " << tolerance << std::endl;
+  size_t real_index = 0;
 
-  try {
-    // --- Load Input Data ---
-    std::cout << "Loading audio data from: " << audio_file << std::endl;
-    std::vector<double> audio = read_vector_from_file_robust(audio_file);
-    std::cout << " -> Loaded " << audio.size() << " samples." << std::endl;
+  for (size_t i = 0; i < audio.size(); i += hop_length) {
+    stream<real_t, hop_length> out;
+    stream<real_signal, hop_length> y;
+    stream<real_signal, frame_length> y_frame;
+    stream<real_t, 1> original_f0_stream;
+    stream<real_t, 1> corrected_f0_stream;
 
-    std::cout << "Loading original F0 data from: " << original_f0_file
-              << std::endl;
-    std::vector<double> original_f0 =
-        read_vector_from_file_robust(original_f0_file);
-    std::cout << " -> Loaded " << original_f0.size() << " F0 values."
-              << std::endl;
-
-    std::cout << "Loading target F0 data from: " << target_f0_file << std::endl;
-    std::vector<double> target_f0 =
-        read_vector_from_file_robust(target_f0_file);
-
-    for (int i = 0; i < original_f0.size(); ++i) {
-      std::cout << original_f0[i] << " " << target_f0[i] << std::endl;
+    for (size_t f = 0; f < hop_length; ++f) {
+      y.write(audio[i + f]);
     }
 
-    std::cout << " -> Loaded " << target_f0.size() << " F0 values."
-              << std::endl;
+    frame(y, y_frame);
 
-    // --- Load Expected Output ---
-    std::cout << "Loading expected output data from: " << expected_output_file
-              << std::endl;
-    std::vector<double> expected_output =
-        read_vector_from_file_robust(expected_output_file);
-    std::cout << " -> Loaded " << expected_output.size() << " expected samples."
-              << std::endl;
+    if (i / hop_length > 2) {
+      original_f0_stream.write(original_f0[real_index]);
+      corrected_f0_stream.write(corrected_f0[real_index]);
 
-    // --- Run Vocode Function ---
-    std::cout << "Running vocode function..." << std::endl;
-    std::vector<double> actual_output =
-        vocode(audio, original_f0, target_f0, sample_rate, hop_length,
-               fade_duration_ms);
-    std::cout << " -> Vocode function finished. Output size: "
-              << actual_output.size() << " samples." << std::endl;
+      vocode(y_frame, original_f0_stream, corrected_f0_stream, out);
 
-    if (writeVectorToFile(actual_output, outputFilename)) {
-      std::cout << "File write operation successful." << std::endl;
+      for (size_t j = 0; j < hop_length; ++j) {
+        const auto element = out.read();
+
+        outFile << std::scientific << std::setprecision(18) << element << '\n';
+      }
+
     } else {
-      std::cout << "File write operation failed." << std::endl;
-      return 1; // Indicate error in main
+      for (size_t j = 0; j < frame_length; ++j) {
+        y_frame.read();
+        // std::cout << y_frame.read() << " ";
+      }
     }
-
-    // --- Compare Results ---
-    std::cout << "Comparing actual output with expected output..." << std::endl;
-    bool success = compare_vectors(actual_output, expected_output, tolerance);
-
-    if (success) {
-      std::cout << "--- Test PASSED ---" << std::endl;
-      return 0; // Indicate success
-    } else {
-      std::cerr << "--- Test FAILED ---" << std::endl;
-      return 1; // Indicate failure
-    }
-
-  } catch (const std::runtime_error &e) {
-    std::cerr << "Runtime Error: " << e.what() << std::endl;
-    std::cerr << "--- Test FAILED ---" << std::endl;
-    return 1; // Indicate failure due to error
-  } catch (const std::exception &e) {
-    std::cerr << "Standard Exception: " << e.what() << std::endl;
-    std::cerr << "--- Test FAILED ---" << std::endl;
-    return 1; // Indicate failure due to error
-  } catch (...) {
-    std::cerr << "An unknown error occurred." << std::endl;
-    std::cerr << "--- Test FAILED ---" << std::endl;
-    return 1; // Indicate failure due to error
   }
 }

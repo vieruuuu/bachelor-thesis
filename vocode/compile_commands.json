@@ -8,6 +8,58 @@
       "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
       "-fhlstoplevel=vocode",
       "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\fft_r2c\\fft_r2c.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\fft_r2c\\fft_r2c.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=vocode",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\stft\\stft.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\stft\\stft.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=vocode",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\istft\\istft.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\istft\\istft.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=vocode",
+      "-c",
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\fft_c2r\\fft_c2r.cpp"
+    ],
+    "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\..\\fft_c2r\\fft_c2r.cpp"
+  },
+  {
+    "directory": "D:\\Documents\\hw_autotune\\vitis\\vocode",
+    "arguments": [
+      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-fhlstoplevel=vocode",
+      "-c",
       "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"
     ],
     "file": "D:\\Documents\\hw_autotune\\vitis\\vocode\\vocode.cpp"

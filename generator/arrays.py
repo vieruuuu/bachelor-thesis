@@ -6,6 +6,7 @@ from lib import (
 import librosa
 from vars import *
 import numpy as np
+import scipy
 import scipy.stats
 from librosa import sequence
 
@@ -101,6 +102,27 @@ def generate_arrays():
     common_arrays += python_array_to_cpp(
         log_t_switch, "log_t_switch", f"ap_fixed<{total_bits}, {int_bits}>", "[2][2]"
     )
+    
+    ###
+
+    bh_window = scipy.signal.get_window("blackmanharris", FRAME_LENGTH, fftbins=True)
+
+    common_arrays += python_array_to_cpp(
+        bh_window,
+        "bh_window",
+        f"ap_fixed<34, 2>",
+        "[frame_length]",
+    )
+
+    bh_window_sq = bh_window ** 2
+
+    common_arrays += python_array_to_cpp(
+        bh_window_sq,
+        "bh_window_sq",
+        f"ap_fixed<34, 2>",
+        "[frame_length]",
+    )
+
     ###
 
     with open("../common/common_arrays.generated.hpp", "w") as cpp_file:

@@ -28,7 +28,8 @@ constexpr size_t BIGGEST_NUMBER_SCALED = 1 << STATIC_SCALE_FACTOR;
 using dk_type = ap_fixed<real_signal_width * 2,
                          fitting_power_of_two(BIGGEST_NUMBER_SCALED * 2 + K)>;
 
-void asd(stream<real_signal, frame_length> &y, fft_real_stream &r2c_in,
+void asd(stream<real_signal, frame_length> &y,
+         stream<fft_real, fft_r2c_size> &r2c_in,
          stream<cumsum_sq_type, K> &cumsum_sq) {
   cumsum_sq_type previous_cumsum_sq = 0.0;
 
@@ -60,8 +61,8 @@ ADD_PADDING:
   }
 }
 
-void compute_power_spectrum(fft_complex_stream &r2c_out,
-                            fft_complex_stream &c2r_in) {
+void compute_power_spectrum(stream<fft_complex, fft_r2c_size> &r2c_out,
+                            stream<fft_complex, fft_r2c_size> &c2r_in) {
 
 COMPUTE_MAG2:
   for (counter<n_bins> i = 0; i < n_bins; ++i) {
@@ -86,7 +87,7 @@ ADD_PADDING:
   }
 }
 
-void normalization(fft_real_stream &c2r_out,
+void normalization(stream<fft_real, fft_r2c_size> &c2r_out,
                    stream<fft_real_scaled, out_size> &acf,
                    fft_exp_stream &r2c_exp_s, fft_exp_stream &c2r_exp_s) {
 
@@ -125,10 +126,10 @@ void autocorrelate_new(stream<real_signal, frame_length> &y,
   // Zero-pad length for circular convolution: at least 2*n for full linear
   // autocorrelation
   // Allocate input and output buffers
-  fft_real_stream r2c_in;
-  fft_complex_stream r2c_out;
-  fft_complex_stream c2r_in;
-  fft_real_stream c2r_out;
+  stream<fft_real, fft_r2c_size> r2c_in;
+  stream<fft_complex, fft_r2c_size> r2c_out;
+  stream<fft_complex, fft_r2c_size> c2r_in;
+  stream<fft_real, fft_r2c_size> c2r_out;
   fft_exp_stream r2c_exp_s;
   fft_exp_stream c2r_exp_s;
 

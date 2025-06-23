@@ -1,0 +1,10 @@
+{
+  "name": "stft",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": ["hls_config.cfg"],
+    "work_dir": "stft"
+  },
+  "template": "empty_hls_component"
+}

@@ -75,15 +75,15 @@ void drog(index<n_states> j, const DeltasWindow &new_deltas,
     max_val_array[c] = -std::numeric_limits<my_data_t>::infinity();
   }
 
-  constexpr auto aa = n_states / instances;
+  constexpr auto stages = n_states / instances;
 
-  for (index<n_states> i = 0; i < aa; ++i) {
+  for (index<n_states> i = 0; i < stages; ++i) {
 #pragma HLS PIPELINE II = 1 rewind
 
     for (index<instances> c = 0; c < instances; ++c) {
 #pragma HLS UNROLL
 
-      const auto i_real = i + c * aa;
+      const auto i_real = i + c * stages;
 
       const auto path_val =
           get_log_trans(i_real, j) + new_deltas.at(window_size - 1, i_real);

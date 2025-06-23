@@ -1,13 +1,12 @@
 #include "../common/common.hpp"
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <limits>
-#include <numeric>
-#include <vector>
+#include "../stft/stft.hpp"
+#include "../istft/istft.hpp"
 
-std::vector<double> vocode(const std::vector<double> &audio,
-                           const std::vector<double> &original_f0,
-                           const std::vector<double> &target_f0,
-                           int sample_rate, int hop_length,
-                           double fade_duration_ms);
+void vocode(stream<real_signal, frame_length> &y_frame,
+            stream<real_t, 1> &original_f0, stream<real_t, 1> &corrected_f0,
+            stream<real_t, hop_length> &audio_out);
+
+// void vocode(stream<real_signal, frame_length> &y_frame,
+//             stream<real_t, 1> &original_f0, stream<real_t, 1> &corrected_f0,
+//             stream<fft_complex, fft_r2c_short_size> &S_shifted,
+//             fft_exp_stream &exp_new);

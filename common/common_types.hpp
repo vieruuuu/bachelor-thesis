@@ -56,6 +56,8 @@ constexpr size_t log2_constexpr(size_t n) {
   size_t log = 0;
 
   while (n >>= 1) {
+#pragma HLS loop_tripcount min = 0 max = 12 avg = 5
+
     log += 1;
   }
 
