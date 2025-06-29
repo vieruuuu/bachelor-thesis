@@ -1,0 +1,97 @@
+digraph G {
+  rankdir=TD;
+  node [shape=box];
+
+  input [label="24-bit Audio Input"];
+  output [label="24-bit Audio Output"];
+
+  decode_state2 [label="Map Detected Pitch to Nearest Musical Note Frequency"];
+  decode_state2 -> phase_shift [label="Pitch (Hz)"]
+  decode_state2 -> phase_shift [label="Nearest Musical Note (Hz)"]
+
+  // Pitch tracking
+  subgraph cluster_pyin {
+    label="Pitch Tracking";
+    
+    parabolic_interpolation [label="Refine YIN Minima Using Parabolic Interpolation"];
+    pyin_helper [label="Generate Probabilistic HMM State Sequence (pYIN Model)"];
+    online_viterbi [label="Apply Online Viterbi Decoding\n(Sliding Window, Parallel Max Search)"];
+    decode_state [label="Map Detected Pitch to Nearest Musical Note Frequency"];
+
+    diff_cmnd -> parabolic_interpolation [label="YIN Result"];
+    diff_cmnd -> pyin_helper [label="YIN Result"];
+    parabolic_interpolation -> pyin_helper [label="Interpolated Minima"];
+    pyin_helper -> online_viterbi [label="Observation Probabilities"];
+    online_viterbi -> decode_state [label="Most Likely Note States"];
+
+
+    subgraph cluster_cmnd {
+      label="Cumulative mean normalized difference";
+      diff_cmnd [label="Difference Function and\nCumulative Mean Normalized Difference"];
+      normalization -> diff_cmnd;
+
+      subgraph cluster_autocorelation {
+        label="Autocorrelation via FFT";
+
+        cum_sum [label="Compute Cumulative Energy"];
+        fft_r2c [label="Forward FFT (4096-point Real-to-Complex)"];
+        compute_power_spectrum [label="Compute Power Spectrum"];
+        fft_c2r [label="Inverse FFT (4096-point Complex-to-Real)"];
+        normalization [label="Normalize Autocorrelation Frame"];
+
+        cum_sum -> fft_r2c;
+        cum_sum -> diff_cmnd;
+        fft_r2c -> compute_power_spectrum;
+        compute_power_spectrum -> fft_c2r;
+        fft_c2r -> normalization;
+      }
+    }
+  }
+
+  subgraph cluster_vocode {
+    label="Phase Vocoder";
+    phase_shift [label="Shift Phase According to f0 Ratio (Target/Detected)"];
+
+    fft_r2c_short -> phase_shift;
+    phase_shift -> fft_c2r_short;
+    subgraph cluster_stft { 
+      label="Short-Time Fourier Transform";
+      apply_window [label="Apply Blackman-Harris Window to Audio Frame"];
+      fft_r2c_short [label="Forward FFT (2048-point Real-to-Complex)"];
+      apply_window -> fft_r2c_short;
+    }
+
+    subgraph cluster_istft { 
+      label="Inverse STFT (Reconstruction)";
+      fft_c2r_short [label="Inverse FFT (2048-point Complex-to-Real)"];
+      overlap_add [label="Reconstruct Signal via Overlap-Add"];
+      window_sumsquare [label="Track Overlap Energy via Window Sum Square"];
+      normalize [label="Normalize Signal Amplitude by Window Energy"];
+      
+      fft_c2r_short -> overlap_add -> window_sumsquare -> normalize;
+    }
+  }
+
+  // Preprocessing
+  subgraph cluster_preprocessing {
+    label="Preprocessing";
+    stereo_to_mono [label="Convert Stereo to Mono (Use Left Channel)"];
+    frame [label="Split Audio into Overlapping Frames"];
+    
+    stereo_to_mono -> frame;
+  }
+
+  // Postprocessing
+  subgraph cluster_postprocessing {
+    label="Postprocessing";
+    mono_to_stereo [label="Convert Mono Output Back to Stereo Format"];
+  }
+
+  // Connections
+  input -> stereo_to_mono;
+
+  frame -> apply_window [label="Mono Frame"];
+  frame -> cum_sum [label="Mono Frame"];
+
+  normalize -> mono_to_stereo -> output; 
+}
