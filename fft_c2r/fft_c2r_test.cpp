@@ -27,7 +27,7 @@ int main() {
   const real_t precision = 1e-8;
   size_t count = 0;
 
-  for (size_t i = 0; i < 100; i++) {
+  for (size_t i = 0; i < fft_r2c_size; i++) {
     real_t input = input_real_backup[i];
     real_t result = output_real.read() / fft_c2r_size;
 

@@ -102,6 +102,6 @@
     "viterbi"
   ],
   "terminal.integrated.env.windows": {
-    "PATH": "C:\\Xilinx\\Vitis\\2024.2\\bin;${env:PATH}"
+    "PATH": "C:\\Xilinx\\2025.1\\Vitis\\bin;${env:PATH}"
   }
 }

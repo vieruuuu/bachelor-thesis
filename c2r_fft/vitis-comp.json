@@ -3,10 +3,7 @@
   "type": "HLS",
   "configuration": {
     "componentType": "HLS",
-    "configFiles": [
-      "hls_config.cfg"
-    ],
-    "work_dir": "c2r_fft"
-  },
-  "template": "empty_hls_component"
+    "configFiles": ["hls_config.cfg"],
+    "work_dir": "."
+  }
 }

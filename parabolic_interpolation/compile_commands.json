@@ -2,10 +2,10 @@
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation",
     "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "C:\\Xilinx\\2025.1\\Vitis\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\2025.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-hls-syn-headers-dir=C:\\Xilinx\\2025.1\\Vitis\\common\\technology\\autopilot",
       "-fhlstoplevel=parabolic_interpolation",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation.cpp"
@@ -15,10 +15,10 @@
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation",
     "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "C:\\Xilinx\\2025.1\\Vitis\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\2025.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls-tb",
-      "-hls-sim-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\include",
+      "-hls-sim-headers-dir=C:\\Xilinx\\2025.1\\Vitis\\include",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\parabolic_interpolation\\parabolic_interpolation_test.cpp"
     ],

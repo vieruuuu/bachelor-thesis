@@ -3,13 +3,13 @@
     {
       "name": "Win32",
       "includePath": [
-        "C:\\Xilinx\\Vitis\\2024.2\\include",
-        "C:\\Xilinx\\Vitis\\2024.2\\include\\etc",
-        "C:\\Xilinx\\Vitis\\2024.2\\win64\\tools\\auto_cc\\include"
+        "C:\\Xilinx\\2025.1\\Vitis\\include",
+        "C:\\Xilinx\\2025.1\\Vitis\\include\\etc",
+        "C:\\Xilinx\\2025.1\\Vitis\\win64\\tools\\auto_cc\\include"
         // "C:\\Users\\vieru\\.Xilinx\\Vitis\\2024.2\\vitis_libraries\\dsp\\L1\\include\\hw\\vitis_fft\\float"
       ],
       "intelliSenseMode": "windows-clang-x64",
-      "compilerPath": "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe"
+      "compilerPath": "C:\\Xilinx\\2025.1\\Vitis\\win64\\tools\\vcxx\\libexec\\clang++.exe"
     }
   ],
   "version": 4

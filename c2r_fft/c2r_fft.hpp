@@ -30,7 +30,7 @@ struct c2r_params : xf::dsp::fft::ssr_fft_default_params {
       xf::dsp::fft::butterfly_rnd_mode_enum::TRN;
 };
 
-using c2r_real = double;
+using c2r_real = float;
 using c2r_complex = complex_wrapper<c2r_real>;
 
 using c2r_real_stream = stream<c2r_real, c2r_n>;

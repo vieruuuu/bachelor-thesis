@@ -4,7 +4,7 @@
 #include "vt_fft.hpp"
 
 constexpr size_t r2c_n = 2 * frame_length;
-constexpr size_t r2c_r = 16;
+constexpr size_t r2c_r = 2;
 constexpr size_t r2c_sample = r2c_n / r2c_r;
 
 struct r2c_params : xf::dsp::fft::ssr_fft_default_params {
@@ -30,7 +30,7 @@ struct r2c_params : xf::dsp::fft::ssr_fft_default_params {
       xf::dsp::fft::butterfly_rnd_mode_enum::TRN;
 };
 
-using r2c_real = double;
+using r2c_real = float;
 using r2c_complex = complex_wrapper<r2c_real>;
 
 using r2c_real_stream = stream<r2c_real, r2c_n>;

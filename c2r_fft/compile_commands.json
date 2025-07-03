@@ -2,12 +2,12 @@
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\c2r_fft",
     "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "C:\\Xilinx\\2025.1\\Vitis\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\2025.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-hls-syn-headers-dir=C:\\Xilinx\\2025.1\\Vitis\\common\\technology\\autopilot",
       "-fhlstoplevel=c2r_fft_top",
-      "-IC:/Users/vieru/.Xilinx/Vitis/2024.2/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
+      "-IC:/Users/vieru/.Xilinx/Vitis/2025.1/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\c2r_fft\\c2r_fft.cpp"
     ],
@@ -16,12 +16,12 @@
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\c2r_fft",
     "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "C:\\Xilinx\\2025.1\\Vitis\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\2025.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls",
-      "-hls-syn-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\common\\technology\\autopilot",
+      "-hls-syn-headers-dir=C:\\Xilinx\\2025.1\\Vitis\\common\\technology\\autopilot",
       "-fhlstoplevel=c2r_fft_top",
-      "-IC:/Users/vieru/.Xilinx/Vitis/2024.2/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
+      "-IC:/Users/vieru/.Xilinx/Vitis/2025.1/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\r2c_fft\\r2c_fft.cpp"
     ],
@@ -30,11 +30,11 @@
   {
     "directory": "D:\\Documents\\hw_autotune\\vitis\\c2r_fft",
     "arguments": [
-      "C:\\Xilinx\\Vitis\\2024.2\\vcxx\\libexec\\clang++.exe",
-      "--sysroot=C:\\Xilinx\\Vitis\\2024.2\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "C:\\Xilinx\\2025.1\\Vitis\\vcxx\\libexec\\clang++.exe",
+      "--sysroot=C:\\Xilinx\\2025.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
       "-fhls-tb",
-      "-hls-sim-headers-dir=C:\\Xilinx\\Vitis\\2024.2\\include",
-      "-IC:/Users/vieru/.Xilinx/Vitis/2024.2/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
+      "-hls-sim-headers-dir=C:\\Xilinx\\2025.1\\Vitis\\include",
+      "-IC:/Users/vieru/.Xilinx/Vitis/2025.1/vitis_libraries/dsp/L1/include/hw/vitis_fft/float",
       "-c",
       "D:\\Documents\\hw_autotune\\vitis\\c2r_fft\\c2r_fft_test.cpp"
     ],

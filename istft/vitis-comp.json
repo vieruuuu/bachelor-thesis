@@ -4,7 +4,6 @@
   "configuration": {
     "componentType": "HLS",
     "configFiles": ["hls_config.cfg"],
-    "work_dir": "istft"
-  },
-  "template": "empty_hls_component"
+    "work_dir": "."
+  }
 }

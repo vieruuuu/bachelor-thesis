@@ -3,7 +3,7 @@ import numpy as np
 # Parameters
 frequency = 1000.0
 sample_rate = 44100.0
-frame_length = 2048  # Define this appropriately
+frame_length = 4096  # Define this appropriately
 nfreq = frame_length // 2 + 1
 
 # Generate input signal

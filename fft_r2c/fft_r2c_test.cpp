@@ -20,10 +20,10 @@ int main() {
   fft_r2c(input_real, output_complex);
 
   std::cout << "FFT Output:\n";
-  for (size_t i = 0; i < fft_r2c_size; i++) {
+  for (size_t i = 0; i < fft_r2c_size / 2 + 1; i++) {
     complex_t result = output_complex.read();
 
-    if (i < 30 || i > nfreq - 30) {
+    if (i < 30 || i > (fft_r2c_size / 2 + 1) - 30) {
       std::cout << "A[" << i << "] = (" << result.real() << ", "
                 << result.imag() << ")\n";
     }

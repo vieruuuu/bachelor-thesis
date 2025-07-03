@@ -1,77 +1,48 @@
 #include "istft.hpp"
 
-void normalize(stream<real_t, hop_length> &overlap_output,
-               //  stream<real_t, hop_length> &window_sumsq_output,
-               stream<real_t, hop_length> &output) {
-  for (counter<hop_length> i = 0; i < hop_length; ++i) {
-#pragma HLS PIPELINE II = 1 REWIND
+constexpr real_t kHannGain = 4.0 / 3.0; // 1 / 0.75
 
-    const auto overlap_element = overlap_output.read();
-    // const auto window_sumsq_element = window_sumsq_output.read();
+/**********************************************************************
+ *  Overlap–add with built-in windowing (real-time, no divisions)
+ *********************************************************************/
+void overlap_add_window(stream<real_t, frame_length> &input,
+                        stream<real_t, hop_length> &output) {
 
-    // const auto tmp = window_sumsq_element > 1e-8
-    //                      ? overlap_element / window_sumsq_element
-    //                      : 0.0;
+  static real_t carry[frame_length] = {0.0}; // circular overlap buffer
 
-    output.write(overlap_element);
-  }
-}
-
-// void window_sumsquare(stream<real_t, hop_length> &input,
-//                       stream<real_t, hop_length> &output) {
-
-//   static real_t window[frame_length] = {0.0};
-
-//   for (index<hop_length> i = 0; i < hop_length; ++i) {
-// #pragma HLS PIPELINE II = 1
-
-//     const auto tmp = window[i] + bh_window_sq[i].to_float();
-
-//     output.write(tmp);
-//   }
-
-//   for (index<frame_length> i = hop_length; i < frame_length; ++i) {
-// #pragma HLS PIPELINE II = 1
-
-//     const auto tmp = window[i] + bh_window_sq[i].to_float();
-
-//     window[i - hop_length] = tmp;
-//   }
-
-//   for (index<frame_length> i = frame_length - hop_length; i < frame_length;
-//        ++i) {
-// #pragma HLS PIPELINE II = 1
-
-//     window[i] = input.read();
-//   }
-// }
-
-void overlap_add(stream<real_t, frame_length> &input,
-                 stream<real_t, hop_length> &output) {
-
-  static real_t window[frame_length] = {0.0};
-
+  /* ----------------------------------------------------------------
+   * (1) Produce the next hop worth of PCM samples
+   * ---------------------------------------------------------------- */
   for (index<hop_length> i = 0; i < hop_length; ++i) {
 #pragma HLS PIPELINE II = 1
 
-    const auto tmp = window[i] + input.read();
+    const real_t w =
+        hann_window[i].to_float() * kHannGain; // or hann_window_scaled[i]
+    const real_t x = input.read() * w;
+    const real_t y = carry[i] + x; // OLA
 
-    output.write(tmp);
+    output.write(y);
   }
 
+  /* ----------------------------------------------------------------
+   * (2) Shift the tail of the buffer left by hop and add new data
+   * ---------------------------------------------------------------- */
   for (index<frame_length> i = hop_length; i < frame_length; ++i) {
 #pragma HLS PIPELINE II = 1
 
-    const auto tmp = window[i] + input.read();
+    const real_t w = hann_window[i].to_float() * kHannGain;
+    const real_t x = input.read() * w;
 
-    window[i - hop_length] = tmp;
+    carry[i - hop_length] = carry[i] + x; // prepare next call
   }
 
+  /* ----------------------------------------------------------------
+   * (3) Zero the now-unused upper hop section of the carry buffer
+   * ---------------------------------------------------------------- */
   for (index<frame_length> i = frame_length - hop_length; i < frame_length;
        ++i) {
 #pragma HLS PIPELINE II = 1
-
-    window[i] = 0.0;
+    carry[i] = 0.0;
   }
 }
 
@@ -97,22 +68,15 @@ void fft_irfft(stream<complex_t, frame_length> &stft,
   unscale_fft(fft_out, output);
 }
 
+/**********************************************************************
+ *  Inverse STFT top-level (simplified DATAFLOW graph)
+ *********************************************************************/
 void istft(stream<complex_t, frame_length> &stft,
            stream<real_t, hop_length> &output) {
 #pragma HLS DATAFLOW
 
   stream<real_t, frame_length> irfft_output;
-  stream<real_t, hop_length> overlap_output;
-  stream<real_t, hop_length> overlap_output_array[2];
-  stream<real_t, hop_length> window_sumsq_output;
 
-  fft_irfft(stft, irfft_output);
-  overlap_add(irfft_output, overlap_output);
-  // duplicate_stream<real_t, hop_length, 2>(overlap_output,
-  // overlap_output_array); window_sumsquare(overlap_output_array[0],
-  // window_sumsq_output);
-  normalize(overlap_output,
-            // overlap_output_array[1],
-            // window_sumsq_output,
-            output);
+  fft_irfft(stft, irfft_output); // ← unchanged
+  overlap_add_window(irfft_output, output);
 }

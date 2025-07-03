@@ -99,12 +99,12 @@ void frame(stream<real_signal, hop_length> &y,
 int main() {
   // --- Configuration ---
   const std::string audio_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_short.in";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_long.in";
   const std::string original_f0_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0_short.in";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0_long.in";
   const std::string corrected_f0_file =
       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_corrected_f0_"
-      "short.in";
+      "long.in";
   const std::string output_file =
       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.sim.out";
 
@@ -120,7 +120,7 @@ int main() {
 
   size_t real_index = 0;
 
-  for (size_t i = 0; i < audio.size(); i += hop_length) {
+  for (size_t i = 0; i < audio.size() / 4; i += hop_length) {
     stream<real_t, hop_length> out;
     stream<real_signal, hop_length> y;
     stream<real_signal, frame_length> y_frame;

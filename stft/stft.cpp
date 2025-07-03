@@ -3,7 +3,7 @@
 void stft_window(stream<real_signal, frame_length> &y_frame,
                  stream<real_t, fft_r2c_short_size> &fft_in) {
   for (index<frame_length> i = 0; i < frame_length; ++i) {
-#pragma HLS PIPELINE II = 1
+#pragma HLS PIPELINE II = 1 REWIND
 
     const auto fft_element = hann_window[i] * y_frame.read();
 
