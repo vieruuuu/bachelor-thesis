@@ -96,86 +96,21 @@ void frame(stream<real_signal, hop_length> &y,
   }
 }
 
-// int main2() {
-//   // --- Configuration ---
-//   const std::string audio_file =
-//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.in";
-//   const std::string original_f0_file =
-//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0.in";
-//   const std::string corrected_f0_file =
-//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_corrected_f0.in";
-//   const std::string expected_output_file =
-//       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.out";
-
-//   std::vector<double> audio = read_vector_from_file_robust(audio_file);
-//   std::vector<double> original_f0 =
-//       read_vector_from_file_robust(original_f0_file);
-//   std::vector<double> corrected_f0 =
-//       read_vector_from_file_robust(corrected_f0_file);
-
-//   size_t real_index = 0;
-
-//   for (size_t i = 0; i < audio.size(); i += hop_length) {
-//     stream<real_signal, hop_length> y;
-//     stream<real_signal, frame_length> y_frame;
-//     stream<real_t, 1> original_f0_stream;
-//     stream<real_t, 1> corrected_f0_stream;
-//     stream<fft_complex, fft_r2c_short_size> S_shifted;
-//     fft_exp_stream exp_new;
-
-//     for (size_t f = 0; f < hop_length; ++f) {
-//       y.write(audio[i + f]);
-//     }
-
-//     frame(y, y_frame);
-
-//     if (i / hop_length > 2) {
-//       original_f0_stream.write(original_f0[real_index]);
-//       corrected_f0_stream.write(corrected_f0[real_index]);
-
-//       vocode(y_frame, original_f0_stream, corrected_f0_stream, S_shifted,
-//              exp_new);
-
-//       const auto eeee = exp_new.read();
-
-//       std::cout << real_index + 1 << "\tscale:" << eeee << std::endl;
-//       const auto eaeaea = real_t(1 << eeee);
-//       for (size_t j = 0; j < frame_length; ++j) {
-//         const auto element = S_shifted.read();
-//         const auto element_scaled =
-//             std::complex<real_t>(element.real().to_float() * eaeaea,
-//                                  element.imag().to_float() * eaeaea);
-
-//         if (j > 4 && j < 10) {
-//           std::cout << element_scaled << "\t";
-//         }
-//       }
-
-//       std::cout << std::endl << std::endl;
-
-//       real_index++;
-//     } else {
-//       for (size_t j = 0; j < frame_length; ++j) {
-//         y_frame.read();
-//         // std::cout << y_frame.read() << " ";
-//       }
-//     }
-//   }
-// }
-
 int main() {
   // --- Configuration ---
   const std::string audio_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_long.in";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_short.in";
   const std::string original_f0_file =
-      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0_long.in";
+      "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_f0_short.in";
   const std::string corrected_f0_file =
       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode_corrected_f0_"
-      "long.in";
+      "short.in";
   const std::string output_file =
       "D:\\Documents\\hw_autotune\\vitis\\vocode\\data\\vocode.sim.out";
 
   std::ofstream outFile(output_file);
+
+  outFile << std::scientific << std::setprecision(18);
 
   std::vector<double> audio = read_vector_from_file_robust(audio_file);
   std::vector<double> original_f0 =
@@ -202,13 +137,17 @@ int main() {
       original_f0_stream.write(original_f0[real_index]);
       corrected_f0_stream.write(corrected_f0[real_index]);
 
+      // std::cout << original_f0[real_index] << " ";
+
       vocode(y_frame, original_f0_stream, corrected_f0_stream, out);
 
       for (size_t j = 0; j < hop_length; ++j) {
         const auto element = out.read();
 
-        outFile << std::scientific << std::setprecision(18) << element << '\n';
+        outFile << element << '\n';
       }
+
+      real_index++;
 
     } else {
       for (size_t j = 0; j < frame_length; ++j) {

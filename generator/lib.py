@@ -119,7 +119,10 @@ def generate_cpp_enum(scales, enum_name="Scale"):
     entries = [to_enum_friendly_name(s) for s in scales]
     # Join entries with commas and indentation
     body = ",\n  ".join(entries)
-
+  
     # Build the enum declaration
     enum_lines = [f"enum {enum_name} {{", f"  {body}", f"}};"]
+
+    enum_lines.append(f"const int {enum_name}Count = {len(entries)};")
+    
     return "\n".join(enum_lines)

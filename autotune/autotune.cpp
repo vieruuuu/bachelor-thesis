@@ -62,12 +62,13 @@ void volume_down(stream<real_t, hop_length> &in,
   for (counter<hop_length> i = 0; i < hop_length; ++i) {
 #pragma HLS PIPELINE II = 1 REWIND
 
-    out.write(in.read() / 100);
+    out.write(in.read());
   }
 }
 
 void autotune(stream<real_signal, hop_length> &y,
-              stream<real_t, hop_length> &audio_out) {
+              stream<real_t, hop_length> &audio_out, bool next_btn,
+              bool prev_btn) {
 #pragma HLS DATAFLOW
 
   stream<real_t, 1> f0;
@@ -79,26 +80,34 @@ void autotune(stream<real_signal, hop_length> &y,
 
   duplicate_stream<real_signal, frame_length, 2>(y_frame, y_frames);
 
-  pyin(y_frames[0], f0, f0_corrected, Scales::EFLAT_MIN);
+  pyin(y_frames[0], f0, f0_corrected, next_btn, prev_btn);
 
   vocode(y_frames[1], f0, f0_corrected, audio_out);
 }
 
-void top(input_stream &stereo_input, output_stream &stereo_output) {
-#pragma HLS interface mode = axis port = input
-#pragma HLS interface mode = axis port = output
+void top(input_stream &stereo_input, output_stream &stereo_output_p,
+         output_stream &stereo_output_o, bool next_btn, bool prev_btn) {
+#pragma HLS interface mode = axis port = stereo_input
+#pragma HLS interface mode = axis port = stereo_output_p
+#pragma HLS interface mode = axis port = stereo_output_o
+#pragma HLS interface mode = ap_none port = next_btn
+#pragma HLS interface mode = ap_none port = prev_btn
 #pragma HLS INTERFACE ap_ctrl_none port = return
 #pragma HLS DATAFLOW
 
   stream<real_signal, hop_length> mono_input;
+  stream<real_signal, hop_length> mono_input_array[2];
   stream<real_t, hop_length> mono_output;
   stream<real_signal, hop_length> data3;
 
   stereo_to_mono(stereo_input, mono_input);
 
-  autotune(mono_input, mono_output);
+  duplicate_stream<real_signal, hop_length, 2>(mono_input, mono_input_array);
+
+  autotune(mono_input_array[0], mono_output, next_btn, prev_btn);
 
   volume_down(mono_output, data3);
 
-  mono_to_stereo(data3, stereo_output);
+  mono_to_stereo(data3, stereo_output_p);
+  mono_to_stereo(mono_input_array[1], stereo_output_o);
 }

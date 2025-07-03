@@ -31,4 +31,4 @@ TRANSITION_WIDTH = MAX_SEMITONES_PER_FRAME * N_BINS_PER_SEMITONE + 1
 
 THETA = -2.0 * np.pi / FRAME_LENGTH
 
-SCALES = ["Eb:min", "G:min", "C:min", "C#:maj", "B:min", "G:minor"]
+SCALES = ["Eb:min", "G:min", "C#:maj", "B:min", "E:min", "F:minor"]

@@ -105,23 +105,36 @@ def generate_arrays():
     
     ###
 
-    bh_window = scipy.signal.get_window("blackmanharris", FRAME_LENGTH, fftbins=True)
+    hann_window = scipy.signal.get_window("hann", FRAME_LENGTH, fftbins=True)
+
+    print(hann_window.shape)
+    print(hann_window.min())
+    print(hann_window.max())
 
     common_arrays += python_array_to_cpp(
-        bh_window,
-        "bh_window",
+        hann_window,
+        "hann_window",
         f"ap_fixed<34, 2>",
         "[frame_length]",
     )
 
-    bh_window_sq = bh_window ** 2
+    # bh_window = scipy.signal.get_window("blackmanharris", FRAME_LENGTH, fftbins=True)
 
-    common_arrays += python_array_to_cpp(
-        bh_window_sq,
-        "bh_window_sq",
-        f"ap_fixed<34, 2>",
-        "[frame_length]",
-    )
+    # common_arrays += python_array_to_cpp(
+    #     bh_window,
+    #     "bh_window",
+    #     f"ap_fixed<34, 2>",
+    #     "[frame_length]",
+    # )
+
+    # bh_window_sq = bh_window ** 2
+
+    # common_arrays += python_array_to_cpp(
+    #     bh_window_sq,
+    #     "bh_window_sq",
+    #     f"ap_fixed<34, 2>",
+    #     "[frame_length]",
+    # )
 
     ###
 

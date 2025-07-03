@@ -6,7 +6,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "../vocode/vocode.hpp"
 #include "pyin.hpp"
 
 bool writeVectorToFile(const std::vector<double> &data,
@@ -54,6 +53,29 @@ bool writeVectorToFile(const std::vector<double> &data,
   return true; // Indicate success
 }
 
+void frame(stream<real_signal, hop_length> &y,
+           stream<real_signal, frame_length> &y_frame) {
+  static real_signal buffer[frame_length] = {0};
+
+  // shift_left_buffer
+  for (int i = 0; i < frame_length - hop_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const auto tmp = buffer[i + hop_length];
+
+    y_frame.write(tmp);
+    buffer[i] = tmp;
+  }
+
+  // read_elements
+  for (int i = frame_length - hop_length; i < frame_length; ++i) {
+#pragma HLS PIPELINE II = 1 rewind
+    const auto tmp = y.read();
+
+    y_frame.write(tmp);
+    buffer[i] = tmp;
+  }
+}
+
 int main() {
   // Read data from file
   std::ifstream infile(
@@ -77,12 +99,11 @@ int main() {
 
   std::ofstream outputFile_f0("D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
                               "viterbi_"
-                              "nice_fft_big_float_short.out");
+                              "DROG.out");
   std::ofstream outputFile_f0_corrected(
       "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
-      "viterbi_nice_"
-      "fft"
-      "corrected_big_float_short.out");
+      "viterbi_"
+      "DROG_corrected.out");
 
   outputFile_f0 << std::fixed << std::setprecision(5);
   outputFile_f0_corrected << std::fixed << std::setprecision(5);
@@ -93,15 +114,18 @@ int main() {
   std::vector<double> f0_corrected_vec;
 
   for (int i = 0; i < signal.size() / hop_length; ++i) {
-    stream<real_signal, hop_length> y_stream;
+    stream<real_signal, hop_length> y;
+    stream<real_signal, frame_length> y_frame;
     stream<real_t, 1> f0;
     stream<real_t, 1> corrected_f0;
 
     for (int j = 0; j < hop_length; ++j) {
-      y_stream.write(signal[j + i * hop_length]);
+      y.write(signal[j + i * hop_length]);
     }
 
-    pyin(y_stream, f0, corrected_f0, Scales::EFLAT_MIN);
+    frame(y, y_frame);
+
+    pyin(y_frame, f0, corrected_f0, false, false);
     f0_count++;
 
     auto f0_value = f0.read();
@@ -118,13 +142,6 @@ int main() {
     outputFile_f0 << f0_value << '\n';
     outputFile_f0_corrected << corrected_f0_value << '\n';
   }
-
-  // auto vocoded =
-  //     vocode(signal, f0_vec, f0_corrected_vec, sample_rate, hop_length, 1.0);
-
-  // writeVectorToFile(vocoded,
-  // "D:\\Documents\\hw_autotune\\vitis\\pyin\\data\\"
-  //                            "vocoded_baietu_1_ms.out");
 
   std::cout << "rezultat: " << f0_count - 4 << std::endl;
 

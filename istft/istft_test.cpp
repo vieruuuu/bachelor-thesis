@@ -1,4 +1,4 @@
-#include "stft.hpp"
+#include "istft.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -425,20 +425,25 @@ void frame(stream<real_signal, hop_length> &y,
 
 int main() {
   std::string inputDataFile =
-      "D:\\Documents\\hw_autotune\\vitis\\stft\\data\\stft_long.in";
+      "D:\\Documents\\hw_autotune\\vitis\\istft\\data\\istft_long.in";
   std::string expectedDataFile =
-      "D:\\Documents\\hw_autotune\\vitis\\stft\\data\\stft_long.out";
+      "D:\\Documents\\hw_autotune\\vitis\\istft\\data\\istft_long.out";
+  std::string outputDataFilename =
+      "D:\\Documents\\hw_autotune\\vitis\\istft\\data\\istft_tb.out";
 
-  std::vector<double> audio = read_vector_from_file_robust(inputDataFile);
-  const auto expectedData = parseComplexDataRobust(expectedDataFile);
+  std::ofstream outputDataFile(outputDataFilename);
 
-  std::cout << expectedData.size() << " " << expectedData[0].size()
-            << std::endl;
+  outputDataFile << std::scientific << std::setprecision(18);
 
-  stream<real_signal, hop_length> y;
-  stream<real_signal, frame_length> y_frame;
-  stream<fft_complex, frame_length> out;
-  fft_exp_stream exp;
+  const auto input = parseComplexData(inputDataFile);
+  // const auto expectedAudio = read_vector_from_file_robust(expectedDataFile);
+
+  std::cout << input.size() << " " << input[0].size() << std::endl;
+  // std::cout << expectedAudio.size() << std::endl;
+  constexpr auto nbins = frame_length / 2 + 1;
+
+  stream<complex_t, frame_length> S_shifted;
+  stream<real_t, hop_length> output;
 
   double diff_real = 0;
   double diff_real_count = 0;
@@ -446,48 +451,38 @@ int main() {
   double diff_imag_count = 0;
 
   size_t expected_index = 0;
+  size_t file_index = 0;
 
-  for (size_t i = 0; i < audio.size(); i += hop_length) {
-    for (size_t j = 0; j < hop_length; j++) {
-      y.write(audio[i + j]);
+  for (size_t i = 0; i < input.size() / 4; ++i) {
+    double max_abs_num = -std::numeric_limits<double>::infinity();
+
+    for (size_t j = 0; j < nbins; j++) {
+      const auto tmp = input[i][j];
+
+      S_shifted.write({tmp.real(), tmp.imag()});
     }
 
-    frame(y, y_frame);
+    for (size_t j = nbins - 2; j > 0; --j) {
+      const auto tmp = hls::conj(input[i][j]);
 
-    if (i / hop_length > 2) {
-
-      stft(y_frame, out, exp);
-
-      const auto exp_val = exp.read();
-
-      for (size_t j = 0; j < frame_length; ++j) {
-        const auto num = out.read();
-        const fft_complex_scaled num_scaled = {num.real() << exp_val,
-                                               num.imag() << exp_val};
-        const std::complex<double> num_fp = {num_scaled.real().to_double(),
-                                             num_scaled.imag().to_double()};
-        if (j < frame_length / 2 + 1) {
-          diff_real +=
-              std::abs(num_fp.real() - expectedData[expected_index][j].real());
-          diff_real_count++;
-          diff_imag +=
-              std::abs(num_fp.imag() - expectedData[expected_index][j].imag());
-          diff_imag_count++;
-        }
-        // if (j < 3) {
-        //   std::cout << num_scaled << " ";
-        // }
-      }
-
-      // std::cout << std::endl;
-
-      expected_index++;
-    } else {
-      for (size_t j = 0; j < frame_length; ++j) {
-        y_frame.read();
-        // std::cout << y_frame.read() << " ";
-      }
+      S_shifted.write({tmp.real(), tmp.imag()});
     }
+
+    istft(S_shifted, output);
+
+    for (size_t j = 0; j < hop_length; ++j) {
+      file_index++;
+
+      const auto num = output.read();
+
+      // if (j < 5) {
+      //   std::cout << file_index << ": " << num << "\n";
+      // }
+
+      outputDataFile << num << "\n";
+    }
+
+    expected_index++;
   }
 
   diff_real /= diff_real_count;

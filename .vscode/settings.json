@@ -93,7 +93,8 @@
     "cwctype": "cpp",
     "memory_resource": "cpp",
     "string_view": "cpp",
-    "ranges": "cpp"
+    "ranges": "cpp",
+    "regex": "cpp"
   },
   "cSpell.words": [
     "ifft",

@@ -14,9 +14,8 @@ constexpr int real_signal_width = 24;
 
 using real_signal = ap_fixed<real_signal_width, 1>;
 
-using data_t = float;
 using real_t = float;
-using complex_t = std::complex<data_t>;
+using complex_t = std::complex<real_t>;
 
 template <typename T, int DEPTH> using stream = hls::stream<T, DEPTH>;
 

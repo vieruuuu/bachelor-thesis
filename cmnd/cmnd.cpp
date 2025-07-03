@@ -20,18 +20,9 @@ constexpr int STATIC_SCALE_FACTOR = fft_params::max_nfft -
                                     PRODUCT_SCALE_FACTOR - ACF_SCALE_FACTOR -
                                     UNKOWN_SCALE_FACTOR;
 
-using cumsum_sq_type = ap_fixed<real_signal_width * 2, fitting_power_of_two(K)>;
-
-// dk is (-SCALED,SCALED) + (-SCALED,SCALED) + (0,K)
-// where 512 is 1 << STATIC_SCALE_FACTOR
-constexpr size_t BIGGEST_NUMBER_SCALED = 1 << STATIC_SCALE_FACTOR;
-using dk_type = ap_fixed<real_signal_width * 2,
-                         fitting_power_of_two(BIGGEST_NUMBER_SCALED * 2 + K)>;
-
 void asd(stream<real_signal, frame_length> &y,
-         stream<fft_real, fft_r2c_size> &r2c_in,
-         stream<cumsum_sq_type, K> &cumsum_sq) {
-  cumsum_sq_type previous_cumsum_sq = 0.0;
+         stream<real_t, fft_r2c_size> &r2c_in, stream<real_t, K> &cumsum_sq) {
+  auto previous_cumsum_sq = real_t(0.0);
 
 COMPUTE_CUMSUM_SQ:
   for (counter<K> i = 0; i < K; ++i) {
@@ -41,7 +32,9 @@ COMPUTE_CUMSUM_SQ:
 
     r2c_in.write(current_y_frame);
 
-    previous_cumsum_sq = current_y_frame * current_y_frame + previous_cumsum_sq;
+    const auto current_y_frame_sq = current_y_frame * current_y_frame;
+
+    previous_cumsum_sq += current_y_frame_sq.to_float();
 
     cumsum_sq.write(previous_cumsum_sq);
   }
@@ -61,53 +54,38 @@ ADD_PADDING:
   }
 }
 
-void compute_power_spectrum(stream<fft_complex, fft_r2c_size> &r2c_out,
-                            stream<fft_complex, fft_r2c_size> &c2r_in) {
+void compute_power_spectrum(stream<complex_t, fft_r2c_size> &r2c_out,
+                            stream<complex_t, fft_r2c_size> &c2r_in) {
 
 COMPUTE_MAG2:
   for (counter<n_bins> i = 0; i < n_bins; ++i) {
 #pragma HLS PIPELINE II = 1
     const auto tmp = r2c_out.read();
     const auto mag2 = tmp.real() * tmp.real() + tmp.imag() * tmp.imag();
-    const auto mag2_scaled = mag2 >> PRODUCT_SCALE_FACTOR;
 
-    c2r_in.write({mag2_scaled, 0.0});
+    c2r_in.write({mag2, 0.0});
   }
 
 ADD_PADDING:
   for (counter<n_pad - n_bins> i = 0; i < n_pad - n_bins; ++i) {
 #pragma HLS PIPELINE II = 1
 
-    static const fft_complex zero_complex = {0.0, 0.0};
+    c2r_in.write({0.0, 0.0});
 
     // discard fft output
     r2c_out.read();
-
-    c2r_in.write(zero_complex);
   }
 }
 
-void normalization(stream<fft_real, fft_r2c_size> &c2r_out,
-                   stream<fft_real_scaled, out_size> &acf,
-                   fft_exp_stream &r2c_exp_s, fft_exp_stream &c2r_exp_s) {
-
-  const int r2c_exp = r2c_exp_s.read();
-  const int c2r_exp = c2r_exp_s.read();
-
-  const int scale_factor = STATIC_SCALE_FACTOR - 2 * r2c_exp - c2r_exp;
+void normalization(stream<real_t, fft_r2c_size> &c2r_out,
+                   stream<real_t, out_size> &acf) {
+  constexpr real_t scale = 1.0 / fft_c2r_size;
 
 EXTRACT_AUTOCORRELATION:
   for (counter<out_size> i = 0; i < out_size; ++i) {
 #pragma HLS PIPELINE II = 1
-    fft_real_scaled result = c2r_out.read();
 
-    if (scale_factor > 0) {
-      result >>= scale_factor;
-    } else if (scale_factor < 0) {
-      result <<= -scale_factor;
-    }
-
-    acf.write(result);
+    acf.write(c2r_out.read() * scale);
   }
 
 DISCARD_FFT_OUTPUT:
@@ -118,34 +96,32 @@ DISCARD_FFT_OUTPUT:
 }
 
 void autocorrelate_new(stream<real_signal, frame_length> &y,
-                       stream<fft_real_scaled, out_size> &acf,
-                       stream<cumsum_sq_type, K> &cumsum_sq) {
+                       stream<real_t, out_size> &acf,
+                       stream<real_t, K> &cumsum_sq) {
 #pragma HLS DATAFLOW
 
   // Determine output size
   // Zero-pad length for circular convolution: at least 2*n for full linear
   // autocorrelation
   // Allocate input and output buffers
-  stream<fft_real, fft_r2c_size> r2c_in;
-  stream<fft_complex, fft_r2c_size> r2c_out;
-  stream<fft_complex, fft_r2c_size> c2r_in;
-  stream<fft_real, fft_r2c_size> c2r_out;
-  fft_exp_stream r2c_exp_s;
-  fft_exp_stream c2r_exp_s;
+  stream<real_t, fft_r2c_size> r2c_in;
+  stream<complex_t, fft_r2c_size> r2c_out;
+  stream<complex_t, fft_r2c_size> c2r_in;
+  stream<real_t, fft_r2c_size> c2r_out;
 
   asd(y, r2c_in, cumsum_sq);
 
   // Plan and execute forward transform
-  fft_r2c(r2c_in, r2c_out, r2c_exp_s);
+  fft_r2c(r2c_in, r2c_out);
 
   // Compute power spectrum (abs^2)
   compute_power_spectrum(r2c_out, c2r_in);
 
   // Plan and execute inverse transform
-  fft_c2r(c2r_in, c2r_out, c2r_exp_s);
+  fft_c2r(c2r_in, c2r_out);
 
   // Normalize inverse FFT
-  normalization(c2r_out, acf, r2c_exp_s, c2r_exp_s);
+  normalization(c2r_out, acf);
 }
 
 // 3) Difference function d[k][f] for k=1..K
@@ -156,26 +132,21 @@ void autocorrelate_new(stream<real_signal, frame_length> &y,
 // we only store k in [min_period..max_period]
 // Precompute prefix sums of d for k=1..K
 // Fill output
-void diff_cmnd_output(stream<cumsum_sq_type, K> &cumsum_sq,
-                      stream<fft_real_scaled, K + 1> &acf,
+void diff_cmnd_output(stream<real_t, K> &cumsum_sq, stream<real_t, K + 1> &acf,
                       stream<real_t, yin_frame_size> &yin_frame) {
-  using d_cumsum_running_type = ap_fixed<64, 20>;
-
-  d_cumsum_running_type d_cumsum_running =
-      std::numeric_limits<d_cumsum_running_type>::min();
+  auto d_cumsum_running = std::numeric_limits<real_t>::min();
 
   const auto first_acf = acf.read();
 
   for (counter<max_period + 1> k = 1; k < max_period + 1; ++k) {
 #pragma HLS PIPELINE II = 1 rewind
 
-    const dk_type dk = first_acf - acf.read() - cumsum_sq.read();
+    const auto dk = first_acf - acf.read() - cumsum_sq.read();
 
     d_cumsum_running = d_cumsum_running + dk;
 
     if (k > min_period - 1) {
-      const d_cumsum_running_type dkk = dk * k;
-      const d_cumsum_running_type result = dkk / d_cumsum_running;
+      const auto result = dk * k / d_cumsum_running;
 
       yin_frame.write(result);
     }
@@ -190,9 +161,8 @@ void cumulative_mean_normalized_difference(
     stream<real_t, yin_frame_size> &yin_frame) {
 #pragma HLS DATAFLOW
 
-  stream<fft_real_scaled, K + 1> acf;
-  stream<cumsum_sq_type, K> cumsum_sq;
-  stream<dk_type, K> dk_s;
+  stream<real_t, K + 1> acf;
+  stream<real_t, K> cumsum_sq;
 
   autocorrelate_new(y_frame_stream, acf, cumsum_sq);
 

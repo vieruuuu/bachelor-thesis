@@ -2,7 +2,7 @@
 
 void pyin(stream<real_signal, frame_length> &y_frame,
           stream<real_t, 1> &f0_stream, stream<real_t, 1> &corrected_f0_stream,
-          Scales scale) {
+          bool next_btn, bool prev_btn) {
 #pragma HLS DATAFLOW
 
   stream<real_t, yin_frame_size> yin_frame;
@@ -22,5 +22,6 @@ void pyin(stream<real_signal, frame_length> &y_frame,
 
   online_windowed_viterbi(observation_probs_stream, states_stream);
 
-  decode_state(scale, states_stream, f0_stream, corrected_f0_stream);
+  decode_state(next_btn, prev_btn, states_stream, f0_stream,
+               corrected_f0_stream);
 }

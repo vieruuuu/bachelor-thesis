@@ -10,4 +10,4 @@
 
 void pyin(stream<real_signal, frame_length> &y_frame,
           stream<real_t, 1> &f0_stream, stream<real_t, 1> &corrected_f0_stream,
-          Scales scale);
+          bool next_btn, bool prev_btn);
