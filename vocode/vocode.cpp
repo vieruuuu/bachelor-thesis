@@ -29,8 +29,10 @@ void arr(stream<complex_t, frame_length> &S, stream<real_t, 1> &original_f0_s,
 #pragma HLS PIPELINE II = 1
 
     const auto element = S.read();
-    const auto mag = std::abs(element);
-    const auto phase = std::arg(element);
+    const auto mag =
+        std::hypot(element.real(), element.imag()); // std::abs(element);
+    const auto phase =
+        std::atan2(element.imag(), element.real()); // std::arg(element);
 
     const auto delta_raw = phase - prev_phase[i] - omega[i] * hop_length;
 

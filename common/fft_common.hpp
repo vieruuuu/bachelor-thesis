@@ -12,14 +12,14 @@ struct fft_params : hls::ip_fft::params_t {
   static const bool has_nfft = false;
   static const unsigned ordering_opt = hls::ip_fft::ordering::natural_order;
 
-  static const unsigned scaling_opt =
-      hls::ip_fft::scaling::block_floating_point;
+  // static const unsigned scaling_opt =
+  //     hls::ip_fft::scaling::block_floating_point;
 
-  static const unsigned super_sample_rate = hls::ip_fft::ssr::ssr_1;
+  // static const unsigned super_sample_rate = hls::ip_fft::ssr::ssr_1;
   static const unsigned rounding_opt =
       hls::ip_fft::rounding::convergent_rounding;
 
-  static const bool use_native_float = false;
+  // static const bool use_native_float = false;
 
   static const bool ovflo = false;
   static const unsigned phase_factor_width = 25;
